@@ -29,3 +29,20 @@ Markdown
 | **Đại diện Quầy Căn tin** | Khách hàng nghiệp vụ | Giao diện dễ thao tác, không làm gián đoạn việc nấu nướng, đối soát tiền rõ ràng. | **Cao** | Phỏng vấn lấy yêu cầu, hướng dẫn dùng thử, lấy feedback định kỳ. |
 | **Sinh viên UEH** | Người dùng cuối | Đặt món nhanh chóng, giao diện mượt trên điện thoại, nhận đồ ăn đúng giờ. | **Trung bình** | Khảo sát nhu cầu, thử nghiệm pre-order, tiếp nhận đánh giá chất lượng. |
 | **Nhóm dự án (Nhóm 5)** | Đội ngũ phát triển | Phân công công bằng, đúng năng lực, hoàn thành sản phẩm MVP chất lượng. | **Cao** | Họp nội bộ hàng tuần, theo dõi task Jira, hỗ trợ kỹ thuật lẫn nhau. |
+7. File src/README.md (Đặng Xuân Huy phụ trách)
+Markdown
+# Source Code Architecture & Development Guidelines
+
+Thư mục chứa toàn bộ mã nguồn của dự án Web Application QuickBite (Sẽ bắt đầu triển khai từ Sprint 2).
+
+## Cấu trúc mã nguồn dự kiến:
+```text
+src/
+├── assets/         # Hình ảnh món ăn, logo thương hiệu, css, icons
+├── components/     # Các thành phần giao diện tái sử dụng (Header, Footer, Menu Card)
+├── config/         # Cấu hình kết nối CSDL MySQL và API VietQR
+├── controllers/    # Xử lý logic nghiệp vụ đặt hàng và giỏ hàng
+├── models/         # Định nghĩa cấu trúc dữ liệu (User, FoodItem, Order)
+└── views/          # Giao diện người dùng (Trang chủ, Menu, Checkout, Admin quầy)
+
+
