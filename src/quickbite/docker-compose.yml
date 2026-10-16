@@ -1,0 +1,29 @@
+# MySQL cho môi trường phát triển (TUỲ CHỌN — dùng khi không muốn cài MySQL trực tiếp)
+# Chạy:   docker compose up -d
+# Dừng:   docker compose down
+# Lưu ý: nếu máy đã có MySQL chạy ở cổng 3306, đổi cổng bên trái, vd "3307:3306"
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: quickbite-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-quickbite_dev_root}
+      MYSQL_DATABASE: quickbite
+      MYSQL_USER: quickbite
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-quickbite_dev_pass}
+      TZ: Asia/Ho_Chi_Minh
+    command: ['--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+    ports:
+      - '3306:3306'
+    volumes:
+      - quickbite-mysql-data:/var/lib/mysql
+      - ./database/docker-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  quickbite-mysql-data:

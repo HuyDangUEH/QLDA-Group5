@@ -1,0 +1,19 @@
+node_modules/
+dist/
+coverage/
+*.log
+*.tsbuildinfo
+
+# Biến môi trường (chứa mật khẩu, khoá bí mật)
+.env
+.env.test
+.env.local
+!.env.example
+!.env.test.example
+
+# Ảnh người dùng tải lên
+backend/uploads/
+backend/uploads-test/
+
+# File sao lưu database (chứa dữ liệu cá nhân) — KHÔNG đưa lên GitHub
+database/*_backup_*.sql
