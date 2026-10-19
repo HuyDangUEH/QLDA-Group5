@@ -1,0 +1,406 @@
+// QuickBite — Prisma schema cho MySQL 8.x
+// Tài liệu quan hệ & sơ đồ ER: xem docs/database.md
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────── Enums ───────────────────────────
+
+enum Role {
+  STUDENT
+  VENDOR
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+/// Vai trò của một người dùng VENDOR trong một quầy cụ thể
+enum VendorRole {
+  OWNER
+  STAFF
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+/// Phiên bản đầu chỉ hỗ trợ trả tiền mặt khi nhận món.
+/// Thêm cổng thanh toán sau này bằng cách bổ sung giá trị mới (vd: VNPAY, MOMO).
+enum PaymentMethod {
+  CASH_ON_PICKUP
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+  VOIDED
+}
+
+enum ReviewStatus {
+  VISIBLE
+  HIDDEN
+  REPORTED
+}
+
+enum NotificationType {
+  ORDER_STATUS
+  SYSTEM
+}
+
+// ─────────────────────────── Người dùng ───────────────────────────
+
+model User {
+  id           Int           @id @default(autoincrement())
+  fullName     String        @db.VarChar(120)
+  email        String        @unique @db.VarChar(191)
+  passwordHash String        @db.VarChar(255)
+  phone        String?       @db.VarChar(20)
+  studentCode  String?       @db.VarChar(30)
+  role         Role          @default(STUDENT)
+  status       AccountStatus @default(ACTIVE)
+  /// Tăng lên khi đổi mật khẩu/khoá tài khoản để vô hiệu hoá các JWT cũ
+  tokenVersion Int           @default(0)
+  lastLoginAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  memberships       VendorMembership[]
+  cart              Cart?
+  orders            Order[]              @relation("StudentOrders")
+  statusChanges     OrderStatusHistory[]
+  reviews           Review[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+  confirmedPayments Payment[]            @relation("PaymentConfirmedBy")
+
+  @@index([role, status])
+  @@map("users")
+}
+
+// ─────────────────────────── Quầy ăn ───────────────────────────
+
+model FoodStall {
+  id                Int      @id @default(autoincrement())
+  name              String   @db.VarChar(120)
+  slug              String   @unique @db.VarChar(140)
+  description       String?  @db.Text
+  imageUrl          String?  @db.VarChar(500)
+  location          String   @db.VarChar(200)
+  phone             String?  @db.VarChar(20)
+  /// Giờ mở/đóng cửa định dạng "HH:mm" (giờ Việt Nam)
+  openTime          String   @default("07:00") @db.VarChar(5)
+  closeTime         String   @default("20:00") @db.VarChar(5)
+  /// Admin bật/tắt quầy trên toàn hệ thống
+  isActive          Boolean  @default(true)
+  /// Chủ quầy tạm ngưng nhận đơn (vd: hết nguyên liệu)
+  isAcceptingOrders Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  memberships VendorMembership[]
+  menuItems   MenuItem[]
+  orders      Order[]
+  reviews     Review[]
+
+  @@index([isActive])
+  @@map("food_stalls")
+}
+
+/// Liên kết người dùng VENDOR với quầy họ được phép quản lý
+model VendorMembership {
+  id        Int        @id @default(autoincrement())
+  userId    Int
+  stallId   Int
+  role      VendorRole @default(STAFF)
+  createdAt DateTime   @default(now())
+
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stall FoodStall @relation(fields: [stallId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, stallId])
+  @@index([stallId])
+  @@map("vendor_memberships")
+}
+
+// ─────────────────────────── Thực đơn ───────────────────────────
+
+model FoodCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(80)
+  slug        String   @unique @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  icon        String?  @db.VarChar(50)
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  menuItems MenuItem[]
+
+  @@map("food_categories")
+}
+
+model MenuItem {
+  id          Int      @id @default(autoincrement())
+  stallId     Int
+  categoryId  Int
+  name        String   @db.VarChar(150)
+  description String?  @db.Text
+  /// Giá tính bằng VND, kiểu DECIMAL để tránh sai số dấu phẩy động
+  price       Decimal  @db.Decimal(12, 2)
+  imageUrl    String?  @db.VarChar(500)
+  /// Còn món / hết món (chủ quầy bật tắt hằng ngày)
+  isAvailable Boolean  @default(true)
+  /// false = đã ngừng kinh doanh (xoá mềm, giữ lịch sử đơn hàng)
+  isActive    Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  /// Tổng số phần đã bán (đơn COMPLETED). Lưu sẵn để sắp xếp "bán chạy" nhanh, cập nhật khi đơn hoàn thành.
+  soldCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  stall      FoodStall    @relation(fields: [stallId], references: [id], onDelete: Restrict)
+  category   FoodCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([stallId, isActive, isAvailable])
+  @@index([categoryId])
+  @@index([price])
+  @@index([name])
+  @@index([soldCount])
+  @@map("menu_items")
+}
+
+// ─────────────────────────── Điểm nhận món ───────────────────────────
+
+model CampusPickupLocation {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique @db.VarChar(120)
+  description String?  @db.VarChar(255)
+  building    String?  @db.VarChar(120)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders Order[]
+
+  @@map("pickup_locations")
+}
+
+// ─────────────────────────── Giỏ hàng ───────────────────────────
+
+/// Giỏ hàng lưu trong DB để giữ nguyên giữa các lần đăng nhập / thiết bị
+model Cart {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id         Int      @id @default(autoincrement())
+  cartId     Int
+  menuItemId Int
+  quantity   Int
+  note       String?  @db.VarChar(255)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  cart     Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, menuItemId])
+  @@map("cart_items")
+}
+
+// ─────────────────────────── Đơn hàng ───────────────────────────
+
+/// Quy tắc: mỗi đơn hàng chỉ thuộc MỘT quầy (single-stall-per-order)
+model Order {
+  id               Int           @id @default(autoincrement())
+  /// Mã đơn dễ đọc, vd: QB-261016-4F7K
+  orderNumber      String        @unique @db.VarChar(30)
+  studentId        Int
+  stallId          Int
+  pickupLocationId Int
+  status           OrderStatus   @default(PENDING)
+  paymentMethod    PaymentMethod @default(CASH_ON_PICKUP)
+  paymentStatus    PaymentStatus @default(UNPAID)
+  subtotal         Decimal       @db.Decimal(12, 2)
+  serviceFee       Decimal       @default(0) @db.Decimal(12, 2)
+  discount         Decimal       @default(0) @db.Decimal(12, 2)
+  total            Decimal       @db.Decimal(12, 2)
+  customerNote     String?       @db.VarChar(500)
+  pickupTime       DateTime?
+  /// Lý do huỷ / từ chối
+  cancelReason     String?       @db.VarChar(255)
+  /// Khoá chống gửi đơn trùng (client tạo 1 UUID cho mỗi lần checkout)
+  idempotencyKey   String?       @db.VarChar(64)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  acceptedAt       DateTime?
+  readyAt          DateTime?
+  completedAt      DateTime?
+  cancelledAt      DateTime?
+
+  student        User                 @relation("StudentOrders", fields: [studentId], references: [id], onDelete: Restrict)
+  stall          FoodStall            @relation(fields: [stallId], references: [id], onDelete: Restrict)
+  pickupLocation CampusPickupLocation @relation(fields: [pickupLocationId], references: [id], onDelete: Restrict)
+  items          OrderItem[]
+  statusHistory  OrderStatusHistory[]
+  payment        Payment?
+  review         Review?
+  notifications  Notification[]
+
+  @@unique([studentId, idempotencyKey])
+  @@index([studentId, createdAt])
+  @@index([stallId, status, createdAt])
+  @@index([status, createdAt])
+  @@map("orders")
+}
+
+/// Ảnh chụp (snapshot) tên & giá món tại thời điểm đặt để giữ đúng lịch sử
+model OrderItem {
+  id         Int     @id @default(autoincrement())
+  orderId    Int
+  menuItemId Int
+  itemName   String  @db.VarChar(150)
+  unitPrice  Decimal @db.Decimal(12, 2)
+  quantity   Int
+  note       String? @db.VarChar(255)
+  lineTotal  Decimal @db.Decimal(12, 2)
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([menuItemId])
+  @@map("order_items")
+}
+
+/// Lịch sử chuyển trạng thái đơn hàng (phục vụ theo dõi đơn)
+model OrderStatusHistory {
+  id          Int          @id @default(autoincrement())
+  orderId     Int
+  fromStatus  OrderStatus?
+  toStatus    OrderStatus
+  changedById Int?
+  note        String?      @db.VarChar(255)
+  createdAt   DateTime     @default(now())
+
+  order     Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  changedBy User? @relation(fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([orderId, createdAt])
+  @@map("order_status_history")
+}
+
+// ─────────────────────────── Thanh toán ───────────────────────────
+
+/// Tách riêng để sau này tích hợp cổng thanh toán (lưu mã giao dịch, provider...)
+model Payment {
+  id            Int           @id @default(autoincrement())
+  orderId       Int           @unique
+  method        PaymentMethod
+  status        PaymentStatus @default(UNPAID)
+  amount        Decimal       @db.Decimal(12, 2)
+  provider      String?       @db.VarChar(50)
+  providerRef   String?       @db.VarChar(120)
+  /// Người xác nhận đã thu tiền (với thanh toán thủ công)
+  confirmedById Int?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  order       Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  confirmedBy User? @relation("PaymentConfirmedBy", fields: [confirmedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@map("payments")
+}
+
+// ─────────────────────────── Đánh giá ───────────────────────────
+
+/// Mỗi đơn đã hoàn thành được đánh giá tối đa một lần
+model Review {
+  id           Int          @id @default(autoincrement())
+  orderId      Int          @unique
+  studentId    Int
+  stallId      Int
+  rating       Int          @db.TinyInt
+  comment      String?      @db.VarChar(1000)
+  status       ReviewStatus @default(VISIBLE)
+  reportReason String?      @db.VarChar(255)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  order   Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  student User      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  stall   FoodStall @relation(fields: [stallId], references: [id], onDelete: Cascade)
+
+  @@index([stallId, status])
+  @@index([status])
+  @@map("reviews")
+}
+
+// ─────────────────────────── Thông báo ───────────────────────────
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  type      NotificationType
+  title     String           @db.VarChar(150)
+  message   String           @db.VarChar(500)
+  orderId   Int?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
+
+// ─────────────────────────── Nhật ký quản trị ───────────────────────────
+
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  actorId    Int?
+  action     String   @db.VarChar(80)
+  entityType String   @db.VarChar(50)
+  entityId   String?  @db.VarChar(50)
+  metadata   Json?
+  ipAddress  String?  @db.VarChar(45)
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([actorId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

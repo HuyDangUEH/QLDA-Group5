@@ -1,4 +1,4 @@
-2. File docs/problem-statement.md (Trần Gia Bảo phụ trách)
+2. File docs/problem-statement.md 
 Markdown
 # Báo Cáo Phân Tích Vấn Đề & Người Dùng Mục Tiêu (Problem Statement)
 
@@ -18,7 +18,7 @@ Vào các khung giờ cao điểm (9h15–9h45, 11h00–11h45, 15h15–15h45), k
 - Quầy bếp nhận đơn qua màn hình tập trung, chuẩn bị món chính xác.
 - **Kỳ vọng:** Giảm 70% thời gian chờ đợi, loại bỏ 95% sai sót nhầm món.
 
-4. File docs/stakeholder-register.md (Trần Gia Bảo phụ trách)
+4. File docs/stakeholder-register.md 
 Markdown
 # Danh Sách & Phân Tích Các Bên Liên Quan (Stakeholder Register)
 
@@ -29,4 +29,20 @@ Markdown
 | **Đại diện Quầy Căn tin** | Khách hàng nghiệp vụ | Giao diện dễ thao tác, không làm gián đoạn việc nấu nướng, đối soát tiền rõ ràng. | **Cao** | Phỏng vấn lấy yêu cầu, hướng dẫn dùng thử, lấy feedback định kỳ. |
 | **Sinh viên UEH** | Người dùng cuối | Đặt món nhanh chóng, giao diện mượt trên điện thoại, nhận đồ ăn đúng giờ. | **Trung bình** | Khảo sát nhu cầu, thử nghiệm pre-order, tiếp nhận đánh giá chất lượng. |
 | **Nhóm dự án (Nhóm 5)** | Đội ngũ phát triển | Phân công công bằng, đúng năng lực, hoàn thành sản phẩm MVP chất lượng. | **Cao** | Họp nội bộ hàng tuần, theo dõi task Jira, hỗ trợ kỹ thuật lẫn nhau. |
+7. File src/README.md (Đặng Xuân Huy phụ trách)
+Markdown
+# Source Code Architecture & Development Guidelines
+
+Thư mục chứa toàn bộ mã nguồn của dự án Web Application QuickBite (Sẽ bắt đầu triển khai từ Sprint 2).
+
+## Cấu trúc mã nguồn dự kiến:
+```text
+src/
+├── assets/         # Hình ảnh món ăn, logo thương hiệu, css, icons
+├── components/     # Các thành phần giao diện tái sử dụng (Header, Footer, Menu Card)
+├── config/         # Cấu hình kết nối CSDL MySQL và API VietQR
+├── controllers/    # Xử lý logic nghiệp vụ đặt hàng và giỏ hàng
+├── models/         # Định nghĩa cấu trúc dữ liệu (User, FoodItem, Order)
+└── views/          # Giao diện người dùng (Trang chủ, Menu, Checkout, Admin quầy)
+
 
