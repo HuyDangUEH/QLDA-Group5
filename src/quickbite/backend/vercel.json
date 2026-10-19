@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "buildCommand": "npm run build && mkdir -p public",
+  "buildCommand": "npm run build && mkdir -p public && echo QuickBite API > public/info.txt",
   "outputDirectory": "public",
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
 }
