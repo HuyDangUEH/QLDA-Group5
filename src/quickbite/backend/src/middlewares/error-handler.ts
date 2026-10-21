@@ -59,6 +59,23 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     });
   }
 
+  // Body vượt giới hạn của express.json() (100 KB)
+  if ((err as { type?: string }).type === 'entity.too.large') {
+    return res.status(413).json({
+      success: false,
+      error: { code: 'PAYLOAD_TOO_LARGE', message: 'Dữ liệu gửi lên quá lớn' },
+    });
+  }
+
+  // Lỗi phía client khác từ body-parser (vd: bảng mã không hỗ trợ): trả đúng mã 4xx, không coi là lỗi hệ thống
+  const status = (err as { status?: number; expose?: boolean }).status;
+  if ((err as { expose?: boolean }).expose && typeof status === 'number' && status >= 400 && status < 500) {
+    return res.status(status).json({
+      success: false,
+      error: { code: 'BAD_REQUEST', message: 'Yêu cầu không hợp lệ' },
+    });
+  }
+
   // Lỗi không lường trước: ghi log đầy đủ nhưng không lộ stack trace ra ngoài
   logger.error({ err, path: req.originalUrl }, 'Lỗi chưa được xử lý');
   return res.status(500).json({

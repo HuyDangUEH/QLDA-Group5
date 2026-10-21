@@ -9,7 +9,8 @@ export const usersService = {
   async updateProfile(userId: number, input: UpdateProfileInput) {
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { fullName: input.fullName, phone: input.phone ?? null, studentCode: input.studentCode ?? null },
+      // undefined = không gửi → Prisma giữ nguyên giá trị cũ
+      data: { fullName: input.fullName, phone: input.phone, studentCode: input.studentCode },
       include: userWithStallsInclude,
     });
     return toPublicUser(user);

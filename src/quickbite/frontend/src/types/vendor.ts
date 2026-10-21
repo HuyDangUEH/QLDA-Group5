@@ -59,6 +59,8 @@ export interface VendorOrderRow {
   paymentStatus: PaymentStatus;
   /** Đơn chuyển khoản chưa nhận được tiền */
   awaitingPayment: boolean;
+  /** Hạn chuyển khoản; quá hạn chưa có tiền thì đơn tự huỷ */
+  paymentExpiresAt: string | null;
   total: Money;
   pickupTime: string | null;
   customerNote: string | null;
