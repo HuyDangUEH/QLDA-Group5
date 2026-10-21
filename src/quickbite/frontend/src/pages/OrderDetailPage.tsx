@@ -139,6 +139,7 @@ function OrderDetail({ order, justPlaced }: { order: Order; justPlaced: boolean 
           <VietQrPaymentCard
             info={order.vietQr}
             orderNumber={order.orderNumber}
+            startedAt={order.createdAt}
             onExpired={() => queryClient.invalidateQueries({ queryKey: orderKeys.detail(order.id) })}
           />
         </div>

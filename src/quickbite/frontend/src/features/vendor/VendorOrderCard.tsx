@@ -5,6 +5,7 @@ import { formatCurrency, formatDateTime, formatTime } from '@/lib/utils';
 import { useNow } from '@/hooks/use-now';
 import { OrderActions } from './order-actions';
 import { PaymentBadge } from '@/features/payments/PaymentBadge';
+import { PaymentCountdown } from '@/features/payments/PaymentCountdown';
 
 /** Phiếu đơn cho màn hình xử lý của quầy: món, ghi chú, người nhận, nút xử lý */
 export function VendorOrderCard({ order, stallId, onOpen }: { order: VendorOrderRow; stallId: number; onOpen: (id: number) => void }) {
@@ -57,6 +58,7 @@ export function VendorOrderCard({ order, stallId, onOpen }: { order: VendorOrder
         <span className="flex flex-wrap items-center gap-2">
           <span className="font-extrabold">{formatCurrency(order.total)}</span>
           <PaymentBadge method={order.paymentMethod} status={order.paymentStatus} />
+          {order.awaitingPayment && order.paymentExpiresAt && <PaymentCountdown expiresAt={order.paymentExpiresAt} />}
         </span>
         <OrderActions
           stallId={stallId}

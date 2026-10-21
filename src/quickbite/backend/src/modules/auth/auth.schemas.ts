@@ -46,8 +46,12 @@ export const loginSchema = z.object({
   password: z.string({ error: 'Vui lòng nhập mật khẩu' }).min(1, 'Vui lòng nhập mật khẩu').max(200),
 });
 
+/**
+ * PATCH hồ sơ: chỉ sửa các trường được gửi lên.
+ * Không gửi trường → giữ nguyên; gửi chuỗi rỗng / null → xoá (số điện thoại, mã sinh viên).
+ */
 export const updateProfileSchema = z.object({
-  fullName: fullNameSchema,
+  fullName: fullNameSchema.optional(),
   phone: optional(phoneSchema),
   studentCode: optional(studentCodeSchema),
 });

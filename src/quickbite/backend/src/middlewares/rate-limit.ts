@@ -6,16 +6,19 @@ const tooManyRequests = (message: string) => ({
   error: { code: 'TOO_MANY_REQUESTS', message },
 });
 
-/** Giới hạn thử đăng nhập / đăng ký để chống dò mật khẩu */
-export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: env.AUTH_RATE_LIMIT_MAX,
-  standardHeaders: 'draft-8',
-  legacyHeaders: false,
-  // Chỉ đếm các lần thất bại, đăng nhập thành công không bị tính
-  skipSuccessfulRequests: true,
-  message: tooManyRequests('Bạn đã thử quá nhiều lần. Vui lòng đợi 15 phút rồi thử lại.'),
-});
+/** Giới hạn thử đăng nhập / đăng ký / đổi mật khẩu để chống dò mật khẩu (tách hàm để test với giới hạn nhỏ) */
+export const createAuthRateLimiter = (limit: number) =>
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    // Chỉ đếm các lần thất bại, đăng nhập thành công không bị tính
+    skipSuccessfulRequests: true,
+    message: tooManyRequests('Bạn đã thử quá nhiều lần. Vui lòng đợi 15 phút rồi thử lại.'),
+  });
+
+export const authRateLimiter = createAuthRateLimiter(env.AUTH_RATE_LIMIT_MAX);
 
 /** Giới hạn tải ảnh: tối đa 30 ảnh / 10 phút cho mỗi người dùng (tránh làm đầy ổ đĩa) */
 export const uploadRateLimiter = rateLimit({

@@ -161,7 +161,7 @@ describe('Đặt đơn chuyển khoản VietQR', () => {
     const detail = await owner.get(`${API}/vendor/stalls/${ctx.stall.id}/orders/${order.id}`);
     expect(detail.body.data.order.nextStatuses).toEqual(['REJECTED']);
     const list = await owner.get(`${API}/vendor/stalls/${ctx.stall.id}/orders?tab=new`);
-    expect(list.body.data[0]).toMatchObject({ awaitingPayment: true, paymentMethod: 'VIETQR' });
+    expect(list.body.data[0]).toMatchObject({ awaitingPayment: true, paymentMethod: 'VIETQR', paymentExpiresAt: order.vietQr.expiresAt });
 
     const accept = await owner.patch(`${API}/vendor/stalls/${ctx.stall.id}/orders/${order.id}/status`).send({ status: 'ACCEPTED' });
     expect(accept.status).toBe(422);
