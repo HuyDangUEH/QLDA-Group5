@@ -25,12 +25,13 @@ afterEach(() => vi.useRealTimers());
 
 describe('VietQrPaymentCard', () => {
   it('hiện mã QR, tài khoản, số tiền, nội dung chuyển khoản và thời gian còn lại', async () => {
-    render(<VietQrPaymentCard info={info()} orderNumber="QB-261020-4F7K" />);
+    render(<VietQrPaymentCard info={info()} orderNumber="QB-261020-4F7K" startedAt={new Date(Date.now() - 5 * 60_000).toISOString()} />);
     expect(await screen.findByRole('img', { name: /Mã VietQR chuyển 70\.000/ })).toHaveAttribute('src', 'data:image/png;base64,QR');
     expect(screen.getByText('Vietcombank')).toBeInTheDocument();
     expect(screen.getByText('1023456789')).toBeInTheDocument();
     expect(screen.getAllByText('QB2610204F7K').length).toBeGreaterThan(0);
-    expect(screen.getByLabelText(/Còn (09|10):\d\d để thanh toán/)).toBeInTheDocument();
+    expect(screen.getByRole('timer')).toHaveAccessibleName(/Còn (09|10):\d\d để thanh toán/);
+    expect(screen.getByText('Thời gian còn lại để chuyển khoản')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Lưu ảnh mã QR/ })).toHaveAttribute('download', 'VietQR-QB-261020-4F7K.png');
     expect(screen.getByRole('button', { name: 'Sao chép nội dung' })).toBeInTheDocument();
   });

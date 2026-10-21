@@ -49,6 +49,7 @@ const listSelect = {
   student: { select: { fullName: true, phone: true } },
   pickupLocation: { select: { id: true, name: true } },
   items: { select: { itemName: true, quantity: true, note: true }, orderBy: { id: 'asc' } },
+  payment: { select: { expiresAt: true } },
 } satisfies Prisma.OrderSelect;
 
 export const vendorOrdersService = {
@@ -88,8 +89,10 @@ export const vendorOrdersService = {
     );
 
     return {
-      orders: orders.map((o) => ({
+      orders: orders.map(({ payment, ...o }) => ({
         ...o,
+        /** Hạn chuyển khoản (chỉ có ý nghĩa khi awaitingPayment) */
+        paymentExpiresAt: payment?.expiresAt ?? null,
         total: o.total.toFixed(0),
         itemCount: o.items.reduce((n, i) => n + i.quantity, 0),
         awaitingPayment: isAwaitingTransfer(o) && o.status === 'PENDING',

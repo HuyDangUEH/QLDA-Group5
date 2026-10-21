@@ -6,6 +6,7 @@ import { OrderProgress } from '@/features/orders/OrderProgress';
 import { OrderStatusBadge } from '@/features/orders/OrderStatusBadge';
 import { ORDER_STATUS_LABELS } from '@/features/orders/order-labels';
 import { PaymentBadge } from '@/features/payments/PaymentBadge';
+import { PaymentCountdown } from '@/features/payments/PaymentCountdown';
 import { vendorKeys, vendorService } from '@/services/vendor.service';
 import { formatCurrency, formatDateTime, formatTime } from '@/lib/utils';
 import { adminKeys, adminService } from '@/services/admin.service';
@@ -105,6 +106,11 @@ export function VendorOrderDialog({
               <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
                 Đang chờ sinh viên chuyển khoản <strong>{formatCurrency(order.vietQr.amount)}</strong> vào {order.vietQr.bankShortName} {order.vietQr.accountNo}, nội dung{' '}
                 <strong className="font-mono">{order.vietQr.content}</strong>. Chỉ nhận đơn sau khi đã nhận được tiền.
+                {order.vietQr.expiresAt && (
+                  <span className="mt-2 flex items-center gap-2">
+                    Hết hạn sau <PaymentCountdown expiresAt={order.vietQr.expiresAt} />
+                  </span>
+                )}
               </p>
             )}
 
