@@ -1,15 +1,16 @@
 
 
-| Mã TC | Tên kịch bản kiểm thử | Dữ liệu đầu vào (Test Data) | Kết quả kỳ vọng (Expected Result) |
-| :---- | :---- | :---- | :---- |
-| **TC-AUTH-01** | Đăng ký thành công với email UEH | email: "bao.31@st.ueh.edu.vn", pass: "Pass@123" | Hệ thống tạo tài khoản, trả mã HTTP 201 Created. |
-| **TC-AUTH-02** | Chặn đăng ký với email ngoài (gmail) | email: "user@gmail.com", pass: "Pass@123" | Báo lỗi "Email phải có đuôi @st.ueh.edu.vn" (HTTP 400). |
-| **TC-AUTH-03** | Chặn đăng ký khi trùng email | email đã tồn tại trong CSDL | Báo lỗi "Email đã được sử dụng" (HTTP 409). |
-| **TC-AUTH-04** | Đăng nhập thành công (Sinh viên) | Nhập đúng email và pass | Lưu cookie JWT httpOnly, chuyển hướng về Trang chủ. |
-| **TC-AUTH-05** | Chặn đăng nhập sai mật khẩu | Nhập đúng email, sai pass | Báo lỗi "Thông tin không chính xác" (HTTP 401). |
-| **TC-AUTH-06** | Rate Limit (Chống Brute-force) | Nhập sai pass liên tục 10 lần | Chặn request tiếp theo, báo lỗi tạm khóa (HTTP 429). |
-| **TC-AUTH-07** | Đăng nhập Chủ quầy (Vendor) | Tài khoản có Role \= VENDOR | Đăng nhập thành công, điều hướng vào Dashboard Bếp. |
-| **TC-AUTH-08** | Chặn Sinh viên vào trang Admin | Tài khoản Role \= STUDENT vào /admin | Bị ProtectedRoute chặn, báo lỗi HTTP 403 Forbidden. |
-| **TC-AUTH-09** | Đổi mật khẩu thu hồi phiên cũ | Đổi mật khẩu trên tab 1, F5 tab 2 | Tab 2 bị đăng xuất lập tức (tokenVersion thay đổi). |
-| **TC-AUTH-10** | Đăng xuất an toàn | Bấm nút "Đăng xuất" | Xóa sạch cookie JWT phiên, chuyển về trang Đăng nhập. |
+| Test Case ID | Tên kịch bản kiểm thử | Mục tiêu & Yêu cầu liên quan | Điều kiện tiên quyết | Dữ liệu đầu vào (Test Data) | Các bước thực hiện (Test Steps) | Kết quả kỳ vọng (Expected Result) | Mức ưu tiên | Kết quả thực tế |
+| ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- |
+| **TC-AUTH-01** | Đăng ký thành công với email UEH hợp lệ | Kiểm tra FR01 (Đăng ký tài khoản sinh viên). | Chưa tồn tại email trong hệ thống CSDL. | email: "bao.31241023360@st.ueh.edu.vn", pass: "QuickBite@2026" | 1\. Nhập họ tên, email UEH, mật khẩu hợp lệ. 2\. Bấm nút "Đăng ký tài khoản". | Hệ thống tạo tài khoản mới, mã hóa mật khẩu Bcrypt, trả mã HTTP 201 Created. | Must | **Pass** |
+| **TC-AUTH-02** | Chặn đăng ký với email không thuộc tên miền UEH | Kiểm tra tính hợp lệ của tài khoản trường học (FR01). | Màn hình đăng ký đang mở. | email: "user\_test@gmail.com", pass: "QuickBite@2026" | 1\. Nhập email cá nhân đuôi @gmail.com. 2\. Bấm nút "Đăng ký". | Hệ thống báo lỗi "Email phải có đuôi @st.ueh.edu.vn", mã HTTP 400 Bad Request. | Must | **Pass** |
+| **TC-AUTH-03** | Chặn đăng ký khi trùng lặp email đã có | Đảm bảo tính duy nhất của tài khoản (FR01, NFR06). | Email đã được đăng ký từ trước trong hệ thống. | email: "bao.31241023360@st.ueh.edu.vn" | 1\. Nhập thông tin đăng ký với email đã tồn tại. 2\. Bấm "Đăng ký". | Trả lỗi "Email đã được sử dụng", không ghi đè dữ liệu, mã HTTP 409 Conflict. | Must | **Pass** |
+| **TC-AUTH-04** | Đăng nhập thành công vai trò Sinh viên | Kiểm tra xác thực và lưu cookie JWT (FR02, NFR02). | Tài khoản sinh viên hợp lệ đang hoạt động. | email: "bao.31241023360@st.ueh.edu.vn", pass: "QuickBite@2026" | 1\. Nhập đúng email và mật khẩu. 2\. Bấm "Đăng nhập". | Đăng nhập thành công, ghi cookie JWT httpOnly, chuyển hướng đến Trang chủ món ăn. | Must | **Pass** |
+| **TC-AUTH-05** | Chặn đăng nhập khi sai mật khẩu | Kiểm tra an toàn bảo mật xác thực (NFR02). | Tài khoản đã tồn tại trong CSDL. | email: "bao.31241023360@st.ueh.edu.vn", pass: "WrongPass123" | 1\. Nhập mật khẩu không chính xác. 2\. Bấm "Đăng nhập". | Báo lỗi "Thông tin đăng nhập không chính xác", mã HTTP 401 Unauthorized. | Must | **Pass** |
+| **TC-AUTH-06** | Kích hoạt Rate Limit khi nhập sai quá 10 lần | Chống tấn công dò mật khẩu Brute-force (NFR02). | Tài khoản tồn tại trên hệ thống. | Nhập sai liên tục 10 lần trong vòng dưới 15 phút. | 1\. Gửi liên tục 11 request đăng nhập sai mật khẩu. | Request thứ 11 bị chặn ngay lập tức, trả thông báo khóa tạm thời và mã HTTP 429\. | Must | **Pass** |
+| **TC-AUTH-07** | Tự động điều hướng đúng vai trò Chủ quầy | Kiểm tra cơ chế phân quyền chuyển hướng (FR02). | Tài khoản được gán vai trò VENDOR. | email: "coha.canteen@st.ueh.edu.vn", pass: "VendorPass@2026" | 1\. Đăng nhập với tài khoản Vendor. 2\. Kiểm tra trang đích. | Hệ thống nhận diện role VENDOR, tự động điều hướng vào Dashboard Quầy bếp. | Must | **Pass** |
+| **TC-AUTH-08** | Chặn Sinh viên truy cập Dashboard Quản trị | Kiểm tra kiểm soát phân quyền ProtectedRoute (FR02). | Đã đăng nhập phiên Sinh viên (STUDENT). | Truy cập URL: /admin/dashboard hoặc /admin/users. | 1\. Nhập trực tiếp URL trang quản trị trên thanh địa chỉ trình duyệt. | Bị ProtectedRoute chặn lại, tự động điều hướng sang trang lỗi 403 Forbidden. | Must | **Pass** |
+| **TC-AUTH-09** | Đổi mật khẩu thành công & Thu hồi phiên cũ | Kiểm tra bảo vệ phiên tokenVersion (NFR02). | Đang đăng nhập tài khoản trên 2 trình duyệt A và B. | Cập nhật mật khẩu mới tại trình duyệt A. | 1\. Đổi mật khẩu tại trình duyệt A. 2\. F5 tải lại trang tại trình duyệt B. | Trình duyệt B tự động bị đăng xuất do JWT cũ mang tokenVersion lỗi thời. | Must | **Pass** |
+| **TC-AUTH-10** | Đăng xuất và xóa an toàn cookie httpOnly | Kiểm tra hoàn tất phiên làm việc an toàn (FR02, NFR02). | Đang trong phiên đăng nhập hợp lệ. | Bấm nút "Đăng xuất" trên thanh điều hướng. | 1\. Bấm Đăng xuất. 2\. Kiểm tra Application Cookie trong DevTools. | Cookie phiên bị xóa sạch hoàn toàn, đưa người dùng về màn hình đăng nhập. | Must | **Pass** |
 
+##### 
