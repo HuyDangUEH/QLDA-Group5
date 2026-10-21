@@ -1,17 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
-import { Check, Copy, Download, Loader2, QrCode, TimerOff } from 'lucide-react';
+import { Check, Copy, Download, Loader2, QrCode, Timer, TimerOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/Card';
 import { useNow } from '@/hooks/use-now';
 import { cn, formatCurrency } from '@/lib/utils';
 import type { VietQrInfo } from '@/types/models';
-
-/** Thời gian còn lại dạng mm:ss */
-function formatCountdown(ms: number) {
-  const total = Math.max(0, Math.floor(ms / 1000));
-  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-}
+import { formatCountdown, isRunningOut } from './countdown';
 
 /** Vẽ chuỗi VietQR thành ảnh (chạy trong trình duyệt, không gọi dịch vụ ngoài) */
 function useQrImage(payload: string | null) {
@@ -63,11 +58,26 @@ function CopyRow({ label, value, display, emphasize }: { label: string; value: s
  * Khung thanh toán chuyển khoản cho sinh viên: mã QR, thông tin tài khoản quầy (có nút sao chép),
  * nội dung chuyển khoản bắt buộc và thời gian còn lại. Trang cha tự tải lại để biết khi nào tiền về.
  */
-export function VietQrPaymentCard({ info, orderNumber, onExpired }: { info: VietQrInfo; orderNumber: string; onExpired?: () => void }) {
+export function VietQrPaymentCard({
+  info,
+  orderNumber,
+  startedAt,
+  onExpired,
+}: {
+  info: VietQrInfo;
+  orderNumber: string;
+  /** Thời điểm đặt đơn — để vẽ thanh thời gian còn lại */
+  startedAt?: string;
+  onExpired?: () => void;
+}) {
   const now = useNow(1000);
   const qrSrc = useQrImage(info.qrPayload);
-  const remaining = info.expiresAt ? new Date(info.expiresAt).getTime() - now : null;
+  const expiresAt = info.expiresAt ? new Date(info.expiresAt).getTime() : null;
+  const remaining = expiresAt !== null ? expiresAt - now : null;
   const expired = remaining !== null && remaining <= 0;
+  const totalMs = expiresAt !== null && startedAt ? expiresAt - new Date(startedAt).getTime() : null;
+  const percent = remaining !== null && totalMs ? Math.min(100, Math.max(0, (remaining / totalMs) * 100)) : null;
+  const warn = remaining !== null && isRunningOut(remaining);
 
   // Hết giờ: báo trang cha tải lại một lần (server huỷ đơn ngay khi được hỏi)
   const notified = useRef(false);
@@ -84,15 +94,36 @@ export function VietQrPaymentCard({ info, orderNumber, onExpired }: { info: Viet
         <h2 className="flex items-center gap-2 text-lg font-bold">
           <QrCode className="size-5 text-brand-300" aria-hidden /> Quét mã để thanh toán
         </h2>
-        {remaining !== null && (
-          <span
-            className={cn('rounded-full px-3 py-1 font-mono text-sm font-bold', expired ? 'bg-red-500/20 text-red-200' : remaining < 3 * 60_000 ? 'bg-amber-400/20 text-amber-200' : 'bg-white/10')}
-            aria-label={expired ? 'Đã hết thời gian thanh toán' : `Còn ${formatCountdown(remaining)} để thanh toán`}
-          >
-            {expired ? 'Hết hạn' : formatCountdown(remaining)}
-          </span>
-        )}
       </div>
+
+      {/* Đồng hồ đếm ngược: hết giờ chưa nhận tiền thì đơn tự huỷ */}
+      {remaining !== null && (
+        <div className={cn('border-b px-6 py-4', expired ? 'border-red-100 bg-red-50' : warn ? 'border-amber-100 bg-amber-50' : 'border-brand-100 bg-brand-50')}>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+            <p className={cn('flex items-center gap-2 text-sm font-semibold', expired ? 'text-red-700' : warn ? 'text-amber-800' : 'text-navy-700')}>
+              <Timer className="size-5" aria-hidden />
+              {expired ? 'Đã hết thời gian thanh toán' : 'Thời gian còn lại để chuyển khoản'}
+            </p>
+            <p
+              role="timer"
+              aria-live="off"
+              aria-label={expired ? 'Đã hết thời gian thanh toán' : `Còn ${formatCountdown(remaining)} để thanh toán`}
+              className={cn('font-mono text-3xl font-extrabold tabular-nums', expired ? 'text-red-600' : warn ? 'text-amber-700' : 'text-brand-600')}
+            >
+              {expired ? '00:00' : formatCountdown(remaining)}
+            </p>
+          </div>
+          {percent !== null && (
+            <div className="mt-2 h-2 overflow-hidden rounded-full bg-white" aria-hidden>
+              <div
+                className={cn('h-full rounded-full transition-[width] duration-1000 ease-linear', expired ? 'bg-red-500' : warn ? 'bg-amber-500' : 'bg-brand-500')}
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+          )}
+          {!expired && <p className="mt-1.5 text-xs text-navy-500">Hết giờ mà chưa nhận được tiền, đơn sẽ tự huỷ.</p>}
+        </div>
+      )}
 
       <div className="grid gap-6 p-6 sm:grid-cols-[220px_1fr]">
         <div className="flex flex-col items-center gap-3">
