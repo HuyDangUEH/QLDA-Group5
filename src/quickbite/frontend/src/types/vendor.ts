@@ -1,4 +1,4 @@
-import type { Money, Order, OrderStatus, PaymentStatus, Rating } from './models';
+import type { Money, Order, OrderStatus, PaymentMethod, PaymentStatus, Rating } from './models';
 
 export interface VendorStall {
   id: number;
@@ -14,6 +14,11 @@ export interface VendorStall {
   isAcceptingOrders: boolean;
   isOpenNow: boolean;
   canOrderNow: boolean;
+  bankBin: string | null;
+  bankAccountNo: string | null;
+  bankAccountName: string | null;
+  acceptsVietQr: boolean;
+  paymentTimeoutMinutes: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -50,7 +55,10 @@ export interface VendorOrderRow {
   id: number;
   orderNumber: string;
   status: OrderStatus;
+  paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
+  /** Đơn chuyển khoản chưa nhận được tiền */
+  awaitingPayment: boolean;
   total: Money;
   pickupTime: string | null;
   customerNote: string | null;

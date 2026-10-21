@@ -8,7 +8,7 @@ import { OrderActions } from './order-actions';
 
 vi.mock('@/services/vendor.service', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/services/vendor.service')>();
-  return { ...actual, vendorService: { updateOrderStatus: vi.fn() } };
+  return { ...actual, vendorService: { updateOrderStatus: vi.fn(), confirmPayment: vi.fn() } };
 });
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
@@ -48,5 +48,32 @@ describe('OrderActions', () => {
     await userEvent.type(screen.getByLabelText(/Lý do/), 'Hết nguyên liệu');
     await userEvent.click(screen.getAllByRole('button', { name: 'Từ chối' }).at(-1)!);
     await waitFor(() => expect(vendorService.updateOrderStatus).toHaveBeenCalledWith(7, 42, 'REJECTED', 'Hết nguyên liệu'));
+  });
+
+  it('đơn chuyển khoản chưa có tiền: nút "Đã nhận tiền" hỏi xác nhận rồi gọi API', async () => {
+    vi.mocked(vendorService.confirmPayment).mockResolvedValue({ ...makeOrder({ paymentMethod: 'VIETQR', paymentStatus: 'PAID' }), nextStatuses: ['ACCEPTED', 'REJECTED'] });
+    withQueryClient(
+      <OrderActions
+        stallId={3}
+        orderId={42}
+        orderNumber="QB-261020-4F7K"
+        nextStatuses={['REJECTED']}
+        payment={{ method: 'VIETQR', awaitingPayment: true, total: '70000' }}
+      />,
+    );
+    expect(screen.queryByRole('button', { name: 'Nhận đơn' })).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Đã nhận tiền' }));
+    expect(await screen.findByText(/nội dung QB2610204F7K/)).toBeInTheDocument();
+    const dialogButtons = screen.getAllByRole('button', { name: 'Đã nhận tiền' });
+    await userEvent.click(dialogButtons[dialogButtons.length - 1]!);
+    await waitFor(() => expect(vendorService.confirmPayment).toHaveBeenCalledWith(3, 42));
+  });
+
+  it('đơn đã chuyển khoản: bước cuối là "Đã giao món" (không thu tiền)', () => {
+    withQueryClient(
+      <OrderActions stallId={1} orderId={42} orderNumber="QB-1" nextStatuses={['COMPLETED']} payment={{ method: 'VIETQR', awaitingPayment: false, total: '70000' }} />,
+    );
+    expect(screen.getByRole('button', { name: 'Đã giao món' })).toBeInTheDocument();
   });
 });

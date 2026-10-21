@@ -42,21 +42,27 @@ stateDiagram-v2
 - Khi đơn chuyển sang `COMPLETED`, số phần đã bán (`menu_items.soldCount`) được cộng ngay trong cùng transaction (dùng cho sắp xếp "bán chạy").
 - Hai nhân viên bấm cùng lúc: chỉ một người thành công, người còn lại nhận `409` và giao diện tự tải lại (có test kiểm chứng).
 
-## 3. Thanh toán (phiên bản đầu)
+## 3. Thanh toán
 
-- Phương thức duy nhất hiện có: **Tiền mặt khi nhận món** (`CASH_ON_PICKUP`).
-- **Thanh toán online CHƯA được tích hợp.** Giao diện không hiển thị lựa chọn thanh toán online như thể nó hoạt động được.
-- Trạng thái thanh toán (`paymentStatus`) tách riêng khỏi trạng thái đơn:
+Có hai phương thức thanh toán:
+- **Tiền mặt khi nhận món** (`CASH_ON_PICKUP`).
+- **Chuyển khoản VietQR** (`VIETQR`): tiền vào thẳng tài khoản của quầy. Chi tiết xem [payments.md](payments.md).
+
+Trạng thái thanh toán (`paymentStatus`) tách riêng khỏi trạng thái đơn:
 
 | Sự kiện | `paymentStatus` |
 |---|---|
 | Tạo đơn | `UNPAID` |
-| Quầy chuyển đơn sang `COMPLETED` (đã giao món và thu tiền) | `PAID` (ghi `paidAt`, `confirmedById`) |
-| Đơn bị `CANCELLED` / `REJECTED` khi chưa thu tiền | `VOIDED` |
-| (Tương lai) hoàn tiền đơn đã thanh toán online | `REFUNDED` |
+| Tiền mặt: quầy chuyển đơn sang `COMPLETED` (đã giao món và thu tiền) | `PAID` (`provider = CASH`, ghi `paidAt`, `confirmedById`) |
+| VietQR: webhook SePay khớp giao dịch, hoặc quầy bấm "Đã nhận tiền" | `PAID` (`provider = SEPAY` / `MANUAL`) |
+| Đơn bị `CANCELLED` / `REJECTED` khi chưa thu tiền (kể cả tự huỷ vì quá hạn chuyển khoản) | `VOIDED` |
+| (Tương lai) quầy ghi nhận đã hoàn tiền | `REFUNDED` |
 
 - Server **không bao giờ** đánh dấu `PAID` dựa vào dữ liệu client gửi lên.
-- **Hoàn tiền:** với tiền mặt, tiền chỉ thu khi giao món nên đơn huỷ/từ chối không phát sinh hoàn tiền. Khi tích hợp cổng thanh toán, module `payments` sẽ thêm luồng `REFUNDED` dựa trên phản hồi (webhook) đã xác thực từ nhà cung cấp.
+- Đơn VietQR chưa có tiền thì quầy **không nhận đơn được**, chỉ từ chối được. Sinh viên **không tự huỷ** đơn đã trả tiền.
+- **Hoàn tiền:**
+  - Tiền mặt chỉ thu khi giao món, nên huỷ đơn không phát sinh hoàn tiền.
+  - Với VietQR, đơn đã trả mà bị huỷ/từ chối, hoặc tiền về sau khi đơn đã tự huỷ, thì quầy nhận thông báo **"Cần hoàn tiền"** và tự hoàn tiền cho sinh viên.
 
 ## 4. Tạo đơn hàng an toàn
 

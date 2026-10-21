@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { Prisma, type OrderStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { currentUser } from '../../middlewares/auth.js';
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../utils/app-error.js';
 import { addDays, dateOnlySchema, eachDay, vnDayEnd, vnDayStart, vnToday } from '../../utils/dates.js';
 import { buildPaginationMeta, sendSuccess } from '../../utils/response.js';
 import { idParamSchema, paginationSchema, toSkipTake } from '../../utils/validation.js';
-import { allowedNextStatuses } from '../orders/order-status.js';
+import { nextStatusesFor } from '../orders/order-status.js';
 import { transitionOrder } from '../orders/order-workflow.js';
 import { orderDetailInclude, toOrderDto } from '../orders/orders.mapper.js';
 import { updateOrderStatusSchema } from '../vendor/vendor-orders.service.js';
@@ -109,6 +109,7 @@ adminOperationsRouter.get('/orders', async (req, res) => {
         id: true,
         orderNumber: true,
         status: true,
+        paymentMethod: true,
         paymentStatus: true,
         total: true,
         createdAt: true,
@@ -121,7 +122,7 @@ adminOperationsRouter.get('/orders', async (req, res) => {
   ]);
   sendSuccess(
     res,
-    orders.map((o) => ({ ...o, total: money(o.total), nextStatuses: allowedNextStatuses(o.status as OrderStatus, 'ADMIN') })),
+    orders.map((o) => ({ ...o, total: money(o.total), nextStatuses: nextStatusesFor(o, 'ADMIN') })),
     200,
     buildPaginationMeta(query.page, query.pageSize, total),
   );
@@ -131,7 +132,7 @@ adminOperationsRouter.get('/orders/:id', async (req, res) => {
   const { id } = idParamSchema.parse(req.params);
   const order = await prisma.order.findUnique({ where: { id }, include: orderDetailInclude });
   if (!order) throw AppError.notFound('Không tìm thấy đơn hàng');
-  sendSuccess(res, { order: { ...toOrderDto(order), nextStatuses: allowedNextStatuses(order.status, 'ADMIN') } });
+  sendSuccess(res, { order: { ...toOrderDto(order), nextStatuses: nextStatusesFor(order, 'ADMIN') } });
 });
 
 // Admin can thiệp trạng thái đơn (vd: huỷ đơn bị treo); vẫn tuân theo máy trạng thái

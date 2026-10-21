@@ -13,6 +13,9 @@ import { uploadRateLimiter } from '../../middlewares/rate-limit.js';
 import { createMenuItemSchema, imageUrlSchema, listMenuQuery, updateMenuItemSchema, vendorMenuService } from './vendor-menu.service.js';
 import { listVendorOrdersQuery, updateOrderStatusSchema, vendorOrdersService } from './vendor-orders.service.js';
 import { reportQuery, vendorReportsService } from './vendor-reports.service.js';
+import { PAYMENT_TIMEOUT_MAX, PAYMENT_TIMEOUT_MIN, hasBankAccount, paymentsService } from '../payments/payments.service.js';
+import { isSupportedBankBin } from '../payments/vietqr-banks.js';
+import { normalizeAccountName } from '../payments/vietqr.js';
 
 /**
  * API dành cho chủ quầy / nhân viên quầy (admin dùng được với mọi quầy).
@@ -29,7 +32,7 @@ vendorRouter.get('/stalls', async (req, res) => {
     where: user.role === 'ADMIN' ? {} : { memberships: { some: { userId: user.id } } },
     orderBy: { name: 'asc' },
   });
-  sendSuccess(res, { stalls: stalls.map((s) => ({ ...s, ...stallOpenState(s) })) });
+  sendSuccess(res, { stalls: stalls.map((s) => ({ ...s, ...stallOpenState(s), acceptsVietQr: hasBankAccount(s) })) });
 });
 
 // ─────────── Các route trong phạm vi một quầy ───────────
@@ -50,7 +53,7 @@ stall.get('/', async (_req, res) => {
       _count: { select: { menuItems: { where: { isActive: true } }, orders: true } },
     },
   });
-  sendSuccess(res, { stall: { ...data, ...stallOpenState(data) }, myRole: res.locals.stallRole });
+  sendSuccess(res, { stall: { ...data, ...stallOpenState(data), acceptsVietQr: hasBankAccount(data) }, myRole: res.locals.stallRole });
 });
 
 export const vendorUpdateStallSchema = z
@@ -66,6 +69,28 @@ export const vendorUpdateStallSchema = z
     closeTime: z.string().regex(TIME_REGEX, 'Giờ phải có dạng HH:mm').optional(),
     imageUrl: imageUrlSchema.nullish(),
     isAcceptingOrders: z.boolean().optional(),
+    /** Tài khoản nhận chuyển khoản VietQR; null = tắt thanh toán chuyển khoản */
+    bankAccount: z
+      .object({
+        bankBin: z.string().refine(isSupportedBankBin, 'Ngân hàng không được hỗ trợ'),
+        accountNo: z
+          .string()
+          .trim()
+          .regex(/^[A-Za-z0-9]{6,19}$/, 'Số tài khoản gồm 6–19 chữ số (không có khoảng trắng)'),
+        accountName: z
+          .string()
+          .transform(normalizeAccountName)
+          .pipe(z.string().min(2, 'Vui lòng nhập tên chủ tài khoản').max(50, 'Tên chủ tài khoản tối đa 50 ký tự')),
+      })
+      .nullable()
+      .optional(),
+    /** Số phút chờ sinh viên chuyển khoản VietQR; quá hạn chưa có tiền thì đơn tự huỷ */
+    paymentTimeoutMinutes: z.coerce
+      .number({ error: 'Số phút không hợp lệ' })
+      .int('Số phút phải là số nguyên')
+      .min(PAYMENT_TIMEOUT_MIN, `Tối thiểu ${PAYMENT_TIMEOUT_MIN} phút`)
+      .max(PAYMENT_TIMEOUT_MAX, `Tối đa ${PAYMENT_TIMEOUT_MAX} phút`)
+      .optional(),
   })
   .refine((d) => !d.openTime || !d.closeTime || d.openTime !== d.closeTime || d.openTime === '00:00', {
     path: ['closeTime'],
@@ -74,16 +99,22 @@ export const vendorUpdateStallSchema = z
 
 // Chủ quầy cập nhật thông tin quầy (tên & vị trí do admin quản lý)
 stall.patch('/', requireStallOwner, async (req, res) => {
-  const input = vendorUpdateStallSchema.parse(req.body);
-  const updated = await prisma.foodStall.update({ where: { id: stallId(res) }, data: input });
-  sendSuccess(res, { stall: { ...updated, ...stallOpenState(updated) } });
+  const { bankAccount, ...input } = vendorUpdateStallSchema.parse(req.body);
+  const bank =
+    bankAccount === undefined
+      ? {}
+      : bankAccount === null
+        ? { bankBin: null, bankAccountNo: null, bankAccountName: null }
+        : { bankBin: bankAccount.bankBin, bankAccountNo: bankAccount.accountNo, bankAccountName: bankAccount.accountName };
+  const updated = await prisma.foodStall.update({ where: { id: stallId(res) }, data: { ...input, ...bank } });
+  sendSuccess(res, { stall: { ...updated, ...stallOpenState(updated), acceptsVietQr: hasBankAccount(updated) } });
 });
 
 // Bật / tắt nhận đơn nhanh (nhân viên cũng được dùng, vd khi hết nguyên liệu)
 stall.patch('/accepting-orders', async (req, res) => {
   const { isAcceptingOrders } = z.object({ isAcceptingOrders: z.boolean() }).parse(req.body);
   const updated = await prisma.foodStall.update({ where: { id: stallId(res) }, data: { isAcceptingOrders } });
-  sendSuccess(res, { stall: { ...updated, ...stallOpenState(updated) } });
+  sendSuccess(res, { stall: { ...updated, ...stallOpenState(updated), acceptsVietQr: hasBankAccount(updated) } });
 });
 
 stall.get('/dashboard', async (_req, res) => {
@@ -116,6 +147,13 @@ stall.patch('/orders/:orderId/status', async (req, res) => {
     reason,
   });
   sendSuccess(res, { order });
+});
+
+// Xác nhận đã nhận chuyển khoản (khi không dùng webhook SePay, quầy tự kiểm tra tài khoản)
+stall.post('/orders/:orderId/confirm-payment', async (req, res) => {
+  const orderId = idOf(req.params.orderId, 'Mã đơn');
+  await paymentsService.confirmManually(stallId(res), orderId, currentUser(req).id);
+  sendSuccess(res, { order: await vendorOrdersService.detail(stallId(res), orderId, actorOf(res)) });
 });
 
 // ─────────── Thực đơn ───────────

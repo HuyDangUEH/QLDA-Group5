@@ -1,6 +1,6 @@
 import { apiClient, request, toApiError } from '@/lib/api-client';
 import type { ApiSuccess, PaginationMeta } from '@/types/api';
-import type { Order, OrderSummary, PaymentMethod, PickupLocation } from '@/types/models';
+import type { Bank, Order, OrderSummary, PaymentMethod, PickupLocation } from '@/types/models';
 
 export type OrderGroup = 'active' | 'completed' | 'cancelled';
 
@@ -14,6 +14,9 @@ export interface CreateOrderPayload {
 
 export const ordersService = {
   pickupLocations: () => request(apiClient.get<ApiSuccess<PickupLocation[]>>('/pickup-locations')),
+
+  /** Ngân hàng hỗ trợ VietQR */
+  banks: () => request(apiClient.get<ApiSuccess<Bank[]>>('/payments/banks')),
 
   create: (payload: CreateOrderPayload) =>
     request(apiClient.post<ApiSuccess<{ order: Order; created: boolean }>>('/orders', payload)),
@@ -44,4 +47,5 @@ export const orderKeys = {
   list: (group: OrderGroup | undefined, page: number) => ['orders', 'list', group ?? 'all', page] as const,
   detail: (id: number) => ['orders', 'detail', id] as const,
   pickupLocations: ['pickup-locations'] as const,
+  banks: ['payment-banks'] as const,
 };

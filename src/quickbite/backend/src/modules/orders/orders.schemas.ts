@@ -10,7 +10,7 @@ export const createOrderSchema = z.object({
     .max(500, 'Ghi chú tối đa 500 ký tự')
     .transform((v) => (v === '' ? null : v))
     .nullish(),
-  paymentMethod: z.enum(['CASH_ON_PICKUP'], { error: 'Phương thức thanh toán không được hỗ trợ' }).default('CASH_ON_PICKUP'),
+  paymentMethod: z.enum(['CASH_ON_PICKUP', 'VIETQR'], { error: 'Phương thức thanh toán không được hỗ trợ' }).default('CASH_ON_PICKUP'),
   /** Client tạo 1 UUID cho mỗi lần thanh toán; gửi lại cùng khoá sẽ không tạo đơn trùng */
   idempotencyKey: z.string().trim().min(8).max(64).regex(/^[\w-]+$/, 'Khoá chống trùng không hợp lệ'),
 });

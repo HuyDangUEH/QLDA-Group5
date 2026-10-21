@@ -1,0 +1,513 @@
+"Issue Id","Issue Type","Summary","Description","Parent","Story Points","Start date","Due date","Labels","Labels"
+"1","Epic","Tuần 1: Khởi động & phân tích","Chốt phạm vi và quy trình, phân tích yêu cầu, dựng design system và khung dự án.","","","2026-10-19","2026-10-23","tuan-1",""
+"2","Task","[PM] Lập kế hoạch dự án: phạm vi, mốc 7 tuần, tiêu chí hoàn thành","Lập kế hoạch dự án: phạm vi, mốc 7 tuần, tiêu chí hoàn thành.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","3","2026-10-19","2026-10-23","PM","tuan-1"
+"3","Task","[PM] Thiết lập Jira, board Scrum, quy trình làm việc và lịch họp","Thiết lập Jira, board Scrum, quy trình làm việc và lịch họp.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","2","2026-10-19","2026-10-23","PM","tuan-1"
+"4","Task","[PM] Họp kick-off: giới thiệu dự án, phân vai, kênh liên lạc","Họp kick-off: giới thiệu dự án, phân vai, kênh liên lạc.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","1","2026-10-19","2026-10-23","PM","tuan-1"
+"5","Task","[BA] Thu thập yêu cầu: phỏng vấn sinh viên và chủ quầy","Thu thập yêu cầu: phỏng vấn sinh viên và chủ quầy.
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","3","2026-10-19","2026-10-23","BA","tuan-1"
+"6","Task","[BA] Viết tài liệu yêu cầu (SRS) và mô tả các vai trò người dùng","Viết tài liệu yêu cầu (SRS) và mô tả các vai trò người dùng.
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","5","2026-10-19","2026-10-23","BA","tuan-1"
+"7","Task","[BA] User story + tiêu chí chấp nhận cho Xác thực & phân quyền","User story + tiêu chí chấp nhận cho Xác thực & phân quyền.
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","3","2026-10-19","2026-10-23","BA","tuan-1"
+"8","Task","[Designer] Nghiên cứu người dùng: persona và user flow chính","Nghiên cứu người dùng: persona và user flow chính.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","3","2026-10-19","2026-10-23","Designer","tuan-1"
+"9","Task","[Designer] Design system: màu, font Be Vietnam Pro, component cơ bản","Design system: màu, font Be Vietnam Pro, component cơ bản.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","5","2026-10-19","2026-10-23","Designer","tuan-1"
+"10","Task","[Designer] Wireframe đăng ký, đăng nhập, hồ sơ cá nhân","Wireframe đăng ký, đăng nhập, hồ sơ cá nhân.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","3","2026-10-19","2026-10-23","Designer","tuan-1"
+"11","Task","[QA] Viết kế hoạch kiểm thử (test plan) và chiến lược test","Viết kế hoạch kiểm thử (test plan) và chiến lược test.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","3","2026-10-19","2026-10-23","QA","tuan-1"
+"12","Task","[QA] Thiết lập Vitest + Supertest và database test riêng","Thiết lập Vitest + Supertest và database test riêng.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","3","2026-10-19","2026-10-23","QA","tuan-1"
+"13","Task","[Dev] Khởi tạo backend Express 5 + TypeScript + Prisma + MySQL","Khởi tạo backend Express 5 + TypeScript + Prisma + MySQL.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","5","2026-10-19","2026-10-23","Dev","tuan-1"
+"14","Task","[Dev] Khởi tạo frontend React 19 + Vite + Tailwind + Router + TanStack Query","Khởi tạo frontend React 19 + Vite + Tailwind + Router + TanStack Query.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","3","2026-10-19","2026-10-23","Dev","tuan-1"
+"15","Task","[Dev] Thiết kế schema CSDL, migration đầu tiên và seed dữ liệu mẫu","Thiết kế schema CSDL, migration đầu tiên và seed dữ liệu mẫu.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","5","2026-10-19","2026-10-23","Dev","tuan-1"
+"16","Task","[Dev] Middleware chung: xử lý lỗi, logger Pino, Helmet, CORS","Middleware chung: xử lý lỗi, logger Pino, Helmet, CORS.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 1 — Khởi động & phân tích
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","1","2","2026-10-19","2026-10-23","Dev","tuan-1"
+"17","Epic","Tuần 2: Xác thực & phân quyền","Đăng ký, đăng nhập, phiên an toàn và phân quyền theo vai trò.","","","2026-10-26","2026-10-30","tuan-2",""
+"18","Task","[PM] Sprint planning tuần 2 và theo dõi tiến độ hằng ngày","Sprint planning tuần 2 và theo dõi tiến độ hằng ngày.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","1","2026-10-26","2026-10-30","PM","tuan-2"
+"19","Task","[PM] Lập danh sách rủi ro (risk register) và phương án xử lý","Lập danh sách rủi ro (risk register) và phương án xử lý.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","2","2026-10-26","2026-10-30","PM","tuan-2"
+"20","Task","[BA] User story + tiêu chí chấp nhận cho Khám phá món (tìm kiếm, lọc, quầy, chi tiết món)","User story + tiêu chí chấp nhận cho Khám phá món (tìm kiếm, lọc, quầy, chi tiết món).
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","3","2026-10-26","2026-10-30","BA","tuan-2"
+"21","Task","[BA] Ma trận phân quyền: sinh viên, chủ quầy, quản trị","Ma trận phân quyền: sinh viên, chủ quầy, quản trị.
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","2","2026-10-26","2026-10-30","BA","tuan-2"
+"22","Task","[Designer] Mockup hi-fi đăng ký, đăng nhập, hồ sơ","Mockup hi-fi đăng ký, đăng nhập, hồ sơ.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","3","2026-10-26","2026-10-30","Designer","tuan-2"
+"23","Task","[Designer] Wireframe trang chủ, tìm kiếm, trang quầy, chi tiết món","Wireframe trang chủ, tìm kiếm, trang quầy, chi tiết món.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","5","2026-10-26","2026-10-30","Designer","tuan-2"
+"24","Task","[QA] Viết test case xác thực & phân quyền","Viết test case xác thực & phân quyền.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","3","2026-10-26","2026-10-30","QA","tuan-2"
+"25","Task","[QA] Viết test API tự động cho xác thực","Viết test API tự động cho xác thực.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","5","2026-10-26","2026-10-30","QA","tuan-2"
+"26","Task","[QA] Kiểm thử thủ công luồng đăng ký/đăng nhập/đăng xuất","Kiểm thử thủ công luồng đăng ký/đăng nhập/đăng xuất.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","2","2026-10-26","2026-10-30","QA","tuan-2"
+"27","Task","[Dev] API đăng ký, đăng nhập, đăng xuất với JWT trong cookie httpOnly","API đăng ký, đăng nhập, đăng xuất với JWT trong cookie httpOnly.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","5","2026-10-26","2026-10-30","Dev","tuan-2"
+"28","Task","[Dev] Middleware phân quyền, tokenVersion, rate limit, chống CSRF","Middleware phân quyền, tokenVersion, rate limit, chống CSRF.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","5","2026-10-26","2026-10-30","Dev","tuan-2"
+"29","Task","[Dev] API hồ sơ cá nhân + đổi mật khẩu","API hồ sơ cá nhân + đổi mật khẩu.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","2","2026-10-26","2026-10-30","Dev","tuan-2"
+"30","Task","[Dev] Trang đăng ký, đăng nhập + chuyển hướng theo vai trò","Trang đăng ký, đăng nhập + chuyển hướng theo vai trò.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","5","2026-10-26","2026-10-30","Dev","tuan-2"
+"31","Task","[Dev] ProtectedRoute, trang hồ sơ, trang 403/404","ProtectedRoute, trang hồ sơ, trang 403/404.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 2 — Xác thực & phân quyền
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","17","3","2026-10-26","2026-10-30","Dev","tuan-2"
+"32","Epic","Tuần 3: Khám phá món ăn","Trang chủ, tìm kiếm, bộ lọc, trang quầy và chi tiết món.","","","2026-11-02","2026-11-06","tuan-3",""
+"33","Task","[PM] Sprint review/demo tuần 2 và planning tuần 3","Sprint review/demo tuần 2 và planning tuần 3.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","1","2026-11-02","2026-11-06","PM","tuan-3"
+"34","Task","[PM] Báo cáo tiến độ cho giảng viên/khách hàng","Báo cáo tiến độ cho giảng viên/khách hàng.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","1","2026-11-02","2026-11-06","PM","tuan-3"
+"35","Task","[BA] User story + tiêu chí chấp nhận cho Giỏ hàng, checkout, đặt đơn","User story + tiêu chí chấp nhận cho Giỏ hàng, checkout, đặt đơn.
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","5","2026-11-02","2026-11-06","BA","tuan-3"
+"36","Task","[BA] Quy tắc nghiệp vụ đơn hàng: 1 quầy/đơn, giờ nhận, điều kiện huỷ","Quy tắc nghiệp vụ đơn hàng: 1 quầy/đơn, giờ nhận, điều kiện huỷ.
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","3","2026-11-02","2026-11-06","BA","tuan-3"
+"37","Task","[Designer] Mockup hi-fi trang chủ, tìm kiếm, trang quầy, chi tiết món","Mockup hi-fi trang chủ, tìm kiếm, trang quầy, chi tiết món.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","5","2026-11-02","2026-11-06","Designer","tuan-3"
+"38","Task","[Designer] Chuẩn bị ảnh món & banner offline (.webp, tối ưu dung lượng)","Chuẩn bị ảnh món & banner offline (.webp, tối ưu dung lượng).
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","2","2026-11-02","2026-11-06","Designer","tuan-3"
+"39","Task","[Designer] Wireframe giỏ hàng, checkout, lịch sử đơn","Wireframe giỏ hàng, checkout, lịch sử đơn.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","3","2026-11-02","2026-11-06","Designer","tuan-3"
+"40","Task","[QA] Viết test case tìm kiếm & bộ lọc","Viết test case tìm kiếm & bộ lọc.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","2","2026-11-02","2026-11-06","QA","tuan-3"
+"41","Task","[QA] Viết test API tự động cho tìm kiếm/lọc","Viết test API tự động cho tìm kiếm/lọc.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","3","2026-11-02","2026-11-06","QA","tuan-3"
+"42","Task","[QA] Kiểm tra responsive trên điện thoại các trang khám phá","Kiểm tra responsive trên điện thoại các trang khám phá.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","2","2026-11-02","2026-11-06","QA","tuan-3"
+"43","Task","[Dev] API quầy, danh mục, điểm nhận","API quầy, danh mục, điểm nhận.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","3","2026-11-02","2026-11-06","Dev","tuan-3"
+"44","Task","[Dev] API danh sách món: tìm kiếm không dấu, lọc, phân trang, index","API danh sách món: tìm kiếm không dấu, lọc, phân trang, index.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","5","2026-11-02","2026-11-06","Dev","tuan-3"
+"45","Task","[Dev] API chi tiết món + đánh giá","API chi tiết món + đánh giá.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","2","2026-11-02","2026-11-06","Dev","tuan-3"
+"46","Task","[Dev] Trang chủ + thanh tìm kiếm","Trang chủ + thanh tìm kiếm.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","5","2026-11-02","2026-11-06","Dev","tuan-3"
+"47","Task","[Dev] Trang danh sách món, trang quầy, trang chi tiết món","Trang danh sách món, trang quầy, trang chi tiết món.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 3 — Khám phá món ăn
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","32","8","2026-11-02","2026-11-06","Dev","tuan-3"
+"48","Epic","Tuần 4: Giỏ hàng & đặt món","Giỏ hàng lưu DB, checkout, tạo đơn bằng transaction, xác nhận và lịch sử đơn.","","","2026-11-09","2026-11-13","tuan-4",""
+"49","Task","[PM] Sprint review/demo tuần 3 và planning tuần 4","Sprint review/demo tuần 3 và planning tuần 4.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","1","2026-11-09","2026-11-13","PM","tuan-4"
+"50","Task","[PM] Họp giữa kỳ: rà phạm vi, điều chỉnh kế hoạch nếu trễ","Họp giữa kỳ: rà phạm vi, điều chỉnh kế hoạch nếu trễ.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","2","2026-11-09","2026-11-13","PM","tuan-4"
+"51","Task","[BA] User story + tiêu chí chấp nhận cho Chủ quầy (thực đơn, xử lý đơn, doanh thu, thông báo)","User story + tiêu chí chấp nhận cho Chủ quầy (thực đơn, xử lý đơn, doanh thu, thông báo).
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","5","2026-11-09","2026-11-13","BA","tuan-4"
+"52","Task","[BA] Sơ đồ trạng thái đơn hàng (state machine)","Sơ đồ trạng thái đơn hàng (state machine).
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","2","2026-11-09","2026-11-13","BA","tuan-4"
+"53","Task","[Designer] Mockup hi-fi giỏ hàng, checkout, xác nhận, lịch sử đơn","Mockup hi-fi giỏ hàng, checkout, xác nhận, lịch sử đơn.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","5","2026-11-09","2026-11-13","Designer","tuan-4"
+"54","Task","[Designer] Wireframe dashboard chủ quầy và màn hình xử lý đơn","Wireframe dashboard chủ quầy và màn hình xử lý đơn.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","3","2026-11-09","2026-11-13","Designer","tuan-4"
+"55","Task","[QA] Viết test case giỏ hàng & đặt đơn","Viết test case giỏ hàng & đặt đơn.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","3","2026-11-09","2026-11-13","QA","tuan-4"
+"56","Task","[QA] Test tự động transaction tạo đơn và đặt đơn đồng thời","Test tự động transaction tạo đơn và đặt đơn đồng thời.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","5","2026-11-09","2026-11-13","QA","tuan-4"
+"57","Task","[QA] Kiểm thử thủ công luồng đặt món từ đầu đến cuối","Kiểm thử thủ công luồng đặt món từ đầu đến cuối.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","2","2026-11-09","2026-11-13","QA","tuan-4"
+"58","Task","[Dev] Schema Cart/Order/OrderItem + API giỏ hàng","Schema Cart/Order/OrderItem + API giỏ hàng.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","5","2026-11-09","2026-11-13","Dev","tuan-4"
+"59","Task","[Dev] API tạo đơn bằng transaction (giá phía server, khoá giỏ) + idempotency","API tạo đơn bằng transaction (giá phía server, khoá giỏ) + idempotency.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","8","2026-11-09","2026-11-13","Dev","tuan-4"
+"60","Task","[Dev] API lịch sử, chi tiết và huỷ đơn","API lịch sử, chi tiết và huỷ đơn.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","3","2026-11-09","2026-11-13","Dev","tuan-4"
+"61","Task","[Dev] Trang giỏ hàng + mini cart","Trang giỏ hàng + mini cart.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","5","2026-11-09","2026-11-13","Dev","tuan-4"
+"62","Task","[Dev] Trang checkout, xác nhận, lịch sử và chi tiết đơn","Trang checkout, xác nhận, lịch sử và chi tiết đơn.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 4 — Giỏ hàng & đặt món
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","48","8","2026-11-09","2026-11-13","Dev","tuan-4"
+"63","Epic","Tuần 5: Chủ quầy & thông báo","Dashboard chủ quầy, quản lý thực đơn, xử lý đơn theo trạng thái, doanh thu, thông báo.","","","2026-11-16","2026-11-20","tuan-5",""
+"64","Task","[PM] Sprint review/demo tuần 4 và planning tuần 5","Sprint review/demo tuần 4 và planning tuần 5.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","1","2026-11-16","2026-11-20","PM","tuan-5"
+"65","Task","[PM] Cập nhật rủi ro và kế hoạch còn lại","Cập nhật rủi ro và kế hoạch còn lại.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","1","2026-11-16","2026-11-20","PM","tuan-5"
+"66","Task","[BA] User story + tiêu chí chấp nhận cho Quản trị (người dùng, quầy, danh mục, kiểm duyệt, nhật ký)","User story + tiêu chí chấp nhận cho Quản trị (người dùng, quầy, danh mục, kiểm duyệt, nhật ký).
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","5","2026-11-16","2026-11-20","BA","tuan-5"
+"67","Task","[BA] Định nghĩa chỉ số báo cáo doanh thu và thống kê","Định nghĩa chỉ số báo cáo doanh thu và thống kê.
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","2","2026-11-16","2026-11-20","BA","tuan-5"
+"68","Task","[Designer] Mockup hi-fi dashboard chủ quầy, quản lý thực đơn, báo cáo","Mockup hi-fi dashboard chủ quầy, quản lý thực đơn, báo cáo.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","5","2026-11-16","2026-11-20","Designer","tuan-5"
+"69","Task","[Designer] Wireframe dashboard quản trị","Wireframe dashboard quản trị.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","3","2026-11-16","2026-11-20","Designer","tuan-5"
+"70","Task","[QA] Viết test case chủ quầy & chuyển trạng thái đơn","Viết test case chủ quầy & chuyển trạng thái đơn.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","3","2026-11-16","2026-11-20","QA","tuan-5"
+"71","Task","[QA] Test API tự động cho chủ quầy + upload ảnh","Test API tự động cho chủ quầy + upload ảnh.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","5","2026-11-16","2026-11-20","QA","tuan-5"
+"72","Task","[QA] Kiểm thử thủ công luồng xử lý đơn của chủ quầy","Kiểm thử thủ công luồng xử lý đơn của chủ quầy.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","2","2026-11-16","2026-11-20","QA","tuan-5"
+"73","Task","[Dev] State machine trạng thái đơn + API xử lý đơn cho chủ quầy","State machine trạng thái đơn + API xử lý đơn cho chủ quầy.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","5","2026-11-16","2026-11-20","Dev","tuan-5"
+"74","Task","[Dev] API quản lý thực đơn + upload ảnh (kiểm tra magic bytes)","API quản lý thực đơn + upload ảnh (kiểm tra magic bytes).
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","5","2026-11-16","2026-11-20","Dev","tuan-5"
+"75","Task","[Dev] API báo cáo doanh thu + hệ thống thông báo","API báo cáo doanh thu + hệ thống thông báo.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","5","2026-11-16","2026-11-20","Dev","tuan-5"
+"76","Task","[Dev] Dashboard chủ quầy + màn hình xử lý đơn","Dashboard chủ quầy + màn hình xử lý đơn.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","5","2026-11-16","2026-11-20","Dev","tuan-5"
+"77","Task","[Dev] Trang quản lý thực đơn, báo cáo doanh thu, thông báo","Trang quản lý thực đơn, báo cáo doanh thu, thông báo.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 5 — Chủ quầy & thông báo
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","63","8","2026-11-16","2026-11-20","Dev","tuan-5"
+"78","Epic","Tuần 6: Quản trị hệ thống","Thống kê, người dùng, quầy & nhân viên, danh mục, điểm nhận, đơn hàng, đánh giá, nhật ký.","","","2026-11-23","2026-11-27","tuan-6",""
+"79","Task","[PM] Sprint review/demo tuần 5 và planning tuần 6","Sprint review/demo tuần 5 và planning tuần 6.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","1","2026-11-23","2026-11-27","PM","tuan-6"
+"80","Task","[PM] Lập kế hoạch UAT và bàn giao","Lập kế hoạch UAT và bàn giao.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","2","2026-11-23","2026-11-27","PM","tuan-6"
+"81","Task","[BA] Viết kịch bản UAT cho từng vai trò","Viết kịch bản UAT cho từng vai trò.
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","3","2026-11-23","2026-11-27","BA","tuan-6"
+"82","Task","[BA] Đối chiếu tính năng đã làm với yêu cầu (traceability)","Đối chiếu tính năng đã làm với yêu cầu (traceability).
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","2","2026-11-23","2026-11-27","BA","tuan-6"
+"83","Task","[Designer] Mockup hi-fi các trang quản trị","Mockup hi-fi các trang quản trị.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","5","2026-11-23","2026-11-27","Designer","tuan-6"
+"84","Task","[Designer] Design QA: so giao diện đã code với thiết kế, ghi lỗi UI","Design QA: so giao diện đã code với thiết kế, ghi lỗi UI.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","3","2026-11-23","2026-11-27","Designer","tuan-6"
+"85","Task","[QA] Viết test case quản trị & nhật ký thao tác","Viết test case quản trị & nhật ký thao tác.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","3","2026-11-23","2026-11-27","QA","tuan-6"
+"86","Task","[QA] Test API tự động cho quản trị","Test API tự động cho quản trị.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","5","2026-11-23","2026-11-27","QA","tuan-6"
+"87","Task","[QA] Kiểm thử bảo mật cơ bản: phân quyền, truy cập chéo dữ liệu, upload","Kiểm thử bảo mật cơ bản: phân quyền, truy cập chéo dữ liệu, upload.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","3","2026-11-23","2026-11-27","QA","tuan-6"
+"88","Task","[Dev] API thống kê + quản lý người dùng","API thống kê + quản lý người dùng.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","5","2026-11-23","2026-11-27","Dev","tuan-6"
+"89","Task","[Dev] API quầy & nhân viên, danh mục, điểm nhận, kiểm duyệt đánh giá","API quầy & nhân viên, danh mục, điểm nhận, kiểm duyệt đánh giá.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","5","2026-11-23","2026-11-27","Dev","tuan-6"
+"90","Task","[Dev] API đơn hàng toàn hệ thống + audit log","API đơn hàng toàn hệ thống + audit log.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","3","2026-11-23","2026-11-27","Dev","tuan-6"
+"91","Task","[Dev] Dashboard quản trị + trang quản lý người dùng","Dashboard quản trị + trang quản lý người dùng.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","5","2026-11-23","2026-11-27","Dev","tuan-6"
+"92","Task","[Dev] Trang quầy, danh mục, điểm nhận, đơn hàng, đánh giá, nhật ký","Trang quầy, danh mục, điểm nhận, đơn hàng, đánh giá, nhật ký.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 6 — Quản trị hệ thống
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","78","8","2026-11-23","2026-11-27","Dev","tuan-6"
+"93","Epic","Tuần 7: UAT, hoàn thiện & bàn giao","Kiểm thử chấp nhận, sửa lỗi, tài liệu, bảo mật và demo cuối kỳ.","","","2026-11-30","2026-12-04","tuan-7",""
+"94","Task","[PM] Tổ chức UAT với người dùng thử","Tổ chức UAT với người dùng thử.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","2","2026-11-30","2026-12-04","PM","tuan-7"
+"95","Task","[PM] Chuẩn bị demo và slide báo cáo cuối kỳ","Chuẩn bị demo và slide báo cáo cuối kỳ.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","3","2026-11-30","2026-12-04","PM","tuan-7"
+"96","Task","[PM] Họp retrospective và tổng kết dự án","Họp retrospective và tổng kết dự án.
+
+Vai trò phụ trách: PM (Quản lý dự án: kế hoạch, sprint, rủi ro, báo cáo, demo)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","1","2026-11-30","2026-12-04","PM","tuan-7"
+"97","Task","[BA] Viết hướng dẫn sử dụng cho sinh viên, chủ quầy, quản trị","Viết hướng dẫn sử dụng cho sinh viên, chủ quầy, quản trị.
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","3","2026-11-30","2026-12-04","BA","tuan-7"
+"98","Task","[BA] Tổng hợp phản hồi UAT thành danh sách lỗi/cải tiến","Tổng hợp phản hồi UAT thành danh sách lỗi/cải tiến.
+
+Vai trò phụ trách: BA (Phân tích nghiệp vụ: yêu cầu, user story, tiêu chí chấp nhận, UAT)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","2","2026-11-30","2026-12-04","BA","tuan-7"
+"99","Task","[Designer] Rà soát accessibility và câu chữ tiếng Việt","Rà soát accessibility và câu chữ tiếng Việt.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","2","2026-11-30","2026-12-04","Designer","tuan-7"
+"100","Task","[Designer] Hình ảnh/video minh hoạ cho slide demo","Hình ảnh/video minh hoạ cho slide demo.
+
+Vai trò phụ trách: Designer (Thiết kế UI/UX: user flow, wireframe, mockup, design QA)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","2","2026-11-30","2026-12-04","Designer","tuan-7"
+"101","Task","[QA] Kiểm thử hồi quy toàn bộ + npm audit","Kiểm thử hồi quy toàn bộ + npm audit.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","5","2026-11-30","2026-12-04","QA","tuan-7"
+"102","Task","[QA] Cài đặt mới từ đầu theo README trên máy sạch","Cài đặt mới từ đầu theo README trên máy sạch.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","2","2026-11-30","2026-12-04","QA","tuan-7"
+"103","Task","[QA] Báo cáo kết quả kiểm thử","Báo cáo kết quả kiểm thử.
+
+Vai trò phụ trách: QA (Kiểm thử: test plan, test case, test tự động, hồi quy)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","2","2026-11-30","2026-12-04","QA","tuan-7"
+"104","Task","[Dev] Tài liệu API Swagger/OpenAPI + rà soát bảo mật","Tài liệu API Swagger/OpenAPI + rà soát bảo mật.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","5","2026-11-30","2026-12-04","Dev","tuan-7"
+"105","Task","[Dev] Sao lưu/khôi phục DB + cấu hình production","Sao lưu/khôi phục DB + cấu hình production.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","3","2026-11-30","2026-12-04","Dev","tuan-7"
+"106","Task","[Dev] Tối ưu hiệu năng: lazy-load trang, index, truy vấn N+1","Tối ưu hiệu năng: lazy-load trang, index, truy vấn N+1.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","3","2026-11-30","2026-12-04","Dev","tuan-7"
+"107","Task","[Dev] Sửa lỗi từ UAT và kiểm thử hồi quy","Sửa lỗi từ UAT và kiểm thử hồi quy.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","5","2026-11-30","2026-12-04","Dev","tuan-7"
+"108","Task","[Dev] Hoàn thiện README và tài liệu kỹ thuật","Hoàn thiện README và tài liệu kỹ thuật.
+
+Vai trò phụ trách: Dev (Lập trình fullstack: backend Node.js + frontend React + MySQL)
+Tuần 7 — UAT, hoàn thiện & bàn giao
+Định nghĩa hoàn thành: sản phẩm đã được review, đính kèm/liên kết kết quả vào task, câu chữ tiếng Việt.","93","2","2026-11-30","2026-12-04","Dev","tuan-7"
