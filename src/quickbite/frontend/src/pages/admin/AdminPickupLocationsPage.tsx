@@ -121,7 +121,7 @@ function PickupForm({ location, onDone }: { location: AdminPickupLocation | null
   });
   return (
     <form noValidate className="space-y-4 p-6 pt-4" onSubmit={handleSubmit((v) => save.mutate(v))}>
-      <FormField label="Tên điểm nhận" required placeholder="Vd: Sảnh tòa A1" error={errors.name?.message} {...register('name')} />
+      <FormField label="Tên điểm nhận" required placeholder="Vd: Căn tin cơ sở B" error={errors.name?.message} {...register('name')} />
       <FormField label="Toà nhà" error={errors.building?.message} {...register('building')} />
       <FormField label="Hướng dẫn tìm đường" placeholder="Vd: Quầy nhận món cạnh thang máy" error={errors.description?.message} {...register('description')} />
       <Controller control={control} name="isActive" render={({ field }) => <Switch label="Đang mở (sinh viên chọn được)" checked={field.value} onChange={field.onChange} />} />

@@ -4,7 +4,8 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Spinner, ErrorState } from '@/components/ui/States';
 import { OrderProgress } from '@/features/orders/OrderProgress';
 import { OrderStatusBadge } from '@/features/orders/OrderStatusBadge';
-import { ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '@/features/orders/order-labels';
+import { ORDER_STATUS_LABELS } from '@/features/orders/order-labels';
+import { PaymentBadge } from '@/features/payments/PaymentBadge';
 import { vendorKeys, vendorService } from '@/services/vendor.service';
 import { formatCurrency, formatDateTime, formatTime } from '@/lib/utils';
 import { adminKeys, adminService } from '@/services/admin.service';
@@ -73,8 +74,16 @@ export function VendorOrderDialog({
                 </li>
               ))}
             </ul>
-            <div className="flex justify-between border-t border-gray-100 pt-3">
-              <span className="font-bold">Tổng ({PAYMENT_STATUS_LABELS[order.paymentStatus]})</span>
+            <div className="flex items-center justify-between gap-3 border-t border-gray-100 pt-3">
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="font-bold">Tổng</span>
+                <PaymentBadge method={order.paymentMethod} status={order.paymentStatus} />
+                {order.vietQr?.paidAt && (
+                  <span className="text-xs text-navy-500">
+                    {order.vietQr.confirmedBy === 'SEPAY' ? 'Ngân hàng báo' : 'Quầy xác nhận'} lúc {formatTime(order.vietQr.paidAt)}
+                  </span>
+                )}
+              </span>
               <span className="text-lg font-extrabold text-brand-600">{formatCurrency(order.total)}</span>
             </div>
             {order.customerNote && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Ghi chú của sinh viên: {order.customerNote}</p>}
@@ -92,7 +101,22 @@ export function VendorOrderDialog({
               </ol>
             </details>
 
-            <OrderActions stallId={stallId} orderId={order.id} orderNumber={order.orderNumber} nextStatuses={order.nextStatuses} size="md" mode={mode} />
+            {order.awaitingPayment && order.vietQr && (
+              <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+                Đang chờ sinh viên chuyển khoản <strong>{formatCurrency(order.vietQr.amount)}</strong> vào {order.vietQr.bankShortName} {order.vietQr.accountNo}, nội dung{' '}
+                <strong className="font-mono">{order.vietQr.content}</strong>. Chỉ nhận đơn sau khi đã nhận được tiền.
+              </p>
+            )}
+
+            <OrderActions
+              stallId={stallId}
+              orderId={order.id}
+              orderNumber={order.orderNumber}
+              nextStatuses={order.nextStatuses}
+              size="md"
+              mode={mode}
+              payment={{ method: order.paymentMethod, awaitingPayment: order.awaitingPayment, total: order.total }}
+            />
           </>
         )}
       </div>

@@ -31,6 +31,8 @@ export function makeStall(overrides: Partial<StallSummary> = {}): StallSummary {
     isAcceptingOrders: true,
     isOpenNow: true,
     canOrderNow: true,
+    acceptsVietQr: false,
+    paymentTimeoutMinutes: 15,
     rating: { average: null, count: 0 },
     ...overrides,
   };
@@ -74,6 +76,8 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
     items: [{ id: 1, menuItemId: 1, itemName: 'Phở bò tái', unitPrice: '45000', quantity: 2, note: null, lineTotal: '90000' }],
     statusHistory: [{ id: 1, fromStatus: null, toStatus: 'PENDING', note: null, createdAt: '2026-10-16T03:00:00.000Z' }],
     review: null,
+    vietQr: null,
+    awaitingPayment: false,
     canCancel: true,
     ...overrides,
   };

@@ -41,6 +41,16 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   UPLOAD_DIR: z.string().default('uploads'),
   MAX_UPLOAD_MB: z.coerce.number().positive().default(2),
+  /**
+   * API key nhận webhook biến động số dư từ SePay (https://sepay.vn) để tự xác nhận chuyển khoản.
+   * Bỏ trống = tắt webhook; chủ quầy tự bấm "Đã nhận tiền".
+   */
+  SEPAY_WEBHOOK_API_KEY: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || undefined)
+    .pipe(z.string().min(16, 'SEPAY_WEBHOOK_API_KEY phải dài ít nhất 16 ký tự').optional()),
 });
 
 const parsed = envSchema

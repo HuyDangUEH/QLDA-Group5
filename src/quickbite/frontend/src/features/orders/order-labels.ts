@@ -29,6 +29,7 @@ export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   CASH_ON_PICKUP: 'Tiền mặt khi nhận món',
+  VIETQR: 'Chuyển khoản VietQR',
 };
 
 /** Các bước chính hiển thị trên thanh tiến trình */

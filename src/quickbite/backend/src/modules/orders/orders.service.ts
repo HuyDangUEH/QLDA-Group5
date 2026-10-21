@@ -4,7 +4,9 @@ import { AppError } from '../../utils/app-error.js';
 import { toSkipTake } from '../../utils/validation.js';
 import { generateOrderNumber } from '../../utils/order-number.js';
 import { stallOpenState } from '../catalog/catalog.mappers.js';
-import { ACTIVE_STATUSES, ORDER_STATUS_LABELS, findTransition } from './order-status.js';
+import { ACTIVE_STATUSES, ORDER_STATUS_LABELS, nextStatusesFor } from './order-status.js';
+import { hasBankAccount, paymentsService } from '../payments/payments.service.js';
+import { transferContentFor } from '../payments/vietqr.js';
 import { orderDetailInclude, orderSummarySelect, toOrderDto, toOrderSummary } from './orders.mapper.js';
 import { validatePickupTime } from './pickup-slots.js';
 import type { CreateOrderInput, ListOrdersQuery } from './orders.schemas.js';
@@ -84,6 +86,13 @@ export const ordersService = {
             });
           }
 
+          const byTransfer = input.paymentMethod === 'VIETQR';
+          if (byTransfer && !hasBankAccount(stall)) {
+            throw reject('Quầy này chưa nhận thanh toán chuyển khoản. Vui lòng chọn trả tiền mặt khi nhận món.', [
+              { field: 'paymentMethod', message: 'Quầy chưa cài đặt tài khoản nhận tiền' },
+            ]);
+          }
+
           const pickup = await tx.campusPickupLocation.findFirst({ where: { id: input.pickupLocationId, isActive: true } });
           if (!pickup) throw reject('Điểm nhận món không hợp lệ hoặc đã ngừng hoạt động', [{ field: 'pickupLocationId', message: 'Vui lòng chọn điểm nhận khác' }]);
 
@@ -130,7 +139,21 @@ export const ordersService = {
               pickupTime,
               idempotencyKey: input.idempotencyKey,
               items: { create: lines },
-              payment: { create: { method: input.paymentMethod, status: 'UNPAID', amount: total } },
+              payment: {
+                create: {
+                  method: input.paymentMethod,
+                  status: 'UNPAID',
+                  amount: total,
+                  // Chuyển khoản: chụp lại tài khoản nhận tiền của quầy + nội dung CK + hạn thanh toán
+                  ...(byTransfer && {
+                    transferContent: transferContentFor(orderNumber),
+                    bankBin: stall.bankBin,
+                    bankAccountNo: stall.bankAccountNo,
+                    bankAccountName: stall.bankAccountName,
+                    expiresAt: new Date(Date.now() + stall.paymentTimeoutMinutes * 60_000),
+                  }),
+                },
+              },
               statusHistory: { create: { toStatus: 'PENDING', changedById: studentId, note: 'Sinh viên đặt đơn' } },
             },
           });
@@ -144,14 +167,18 @@ export const ordersService = {
                 orderId: order.id,
                 type: 'ORDER_STATUS',
                 title: `Đặt món thành công: ${orderNumber}`,
-                message: `Đơn của bạn tại ${stall.name} đang chờ quầy xác nhận.`,
+                message: byTransfer
+                  ? `Vui lòng chuyển khoản trong ${stall.paymentTimeoutMinutes} phút để ${stall.name} nhận đơn, quá hạn đơn sẽ tự huỷ.`
+                  : `Đơn của bạn tại ${stall.name} đang chờ quầy xác nhận.`,
               },
               ...staff.map((s) => ({
                 userId: s.userId,
                 orderId: order.id,
                 type: 'ORDER_STATUS' as const,
                 title: `Đơn mới: ${orderNumber}`,
-                message: `${lines.reduce((n, l) => n + l.quantity, 0)} phần — tổng ${new Intl.NumberFormat('vi-VN').format(total.toNumber())}đ. Vui lòng xác nhận.`,
+                message: `${lines.reduce((n, l) => n + l.quantity, 0)} phần — tổng ${new Intl.NumberFormat('vi-VN').format(total.toNumber())}đ. ${
+                  byTransfer ? 'Đang chờ sinh viên chuyển khoản.' : 'Vui lòng xác nhận.'
+                }`,
               })),
             ],
           });
@@ -185,6 +212,8 @@ export const ordersService = {
 
   /** Sinh viên chỉ xem được đơn của mình. Đơn của người khác trả 404 (không lộ là có tồn tại) */
   async detailForStudent(studentId: number, orderId: number) {
+    // Hết hạn chuyển khoản thì huỷ ngay khi xem, không chờ tác vụ định kỳ
+    await paymentsService.expireUnpaidOrders({ orderId });
     const order = await prisma.order.findFirst({ where: { id: orderId, studentId }, include: orderDetailInclude });
     if (!order) throw AppError.notFound('Không tìm thấy đơn hàng');
     return toOrderDto(order);
@@ -194,7 +223,10 @@ export const ordersService = {
   async cancelByStudent(studentId: number, orderId: number, reason?: string) {
     const order = await prisma.order.findFirst({ where: { id: orderId, studentId }, include: { stall: { select: { name: true } } } });
     if (!order) throw AppError.notFound('Không tìm thấy đơn hàng');
-    if (!findTransition(order.status, 'CANCELLED', 'STUDENT_OWNER')) {
+    if (order.status === 'PENDING' && order.paymentStatus === 'PAID') {
+      throw AppError.unprocessable('Đơn đã thanh toán chuyển khoản nên không tự huỷ được. Vui lòng liên hệ quầy để huỷ và được hoàn tiền.');
+    }
+    if (!nextStatusesFor(order, 'STUDENT_OWNER').includes('CANCELLED')) {
       throw AppError.unprocessable(
         `Không thể huỷ đơn đang ở trạng thái "${ORDER_STATUS_LABELS[order.status]}". Đơn chỉ huỷ được khi quầy chưa xác nhận; vui lòng liên hệ quầy.`,
       );
@@ -202,8 +234,9 @@ export const ordersService = {
 
     await prisma.$transaction(async (tx) => {
       // Cập nhật có điều kiện: nếu quầy vừa nhận đơn cùng lúc thì không huỷ nữa
+      // Thêm điều kiện thanh toán: tiền chuyển khoản vừa về thì không huỷ nữa
       const { count } = await tx.order.updateMany({
-        where: { id: order.id, status: order.status },
+        where: { id: order.id, status: order.status, paymentStatus: order.paymentStatus },
         data: { status: 'CANCELLED', paymentStatus: 'VOIDED', cancelReason: reason || 'Sinh viên huỷ đơn', cancelledAt: new Date() },
       });
       if (count === 0) throw AppError.conflict('Trạng thái đơn vừa thay đổi, vui lòng tải lại trang');

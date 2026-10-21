@@ -4,7 +4,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Banknote, ChevronLeft, Clock, MapPin } from 'lucide-react';
+import { Banknote, ChevronLeft, Clock, MapPin, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ErrorState, Spinner } from '@/components/ui/States';
@@ -19,6 +19,7 @@ const checkoutSchema = z.object({
   /** '' = nhận sớm nhất có thể */
   pickupTime: z.string(),
   customerNote: z.string().max(500, 'Ghi chú tối đa 500 ký tự'),
+  paymentMethod: z.enum(['CASH_ON_PICKUP', 'VIETQR']),
 });
 type CheckoutValues = z.infer<typeof checkoutSchema>;
 
@@ -39,10 +40,11 @@ export function CheckoutPage() {
     formState: { errors },
   } = useForm<CheckoutValues>({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: { pickupLocationId: '', pickupTime: '', customerNote: '' },
+    defaultValues: { pickupLocationId: '', pickupTime: '', customerNote: '', paymentMethod: 'CASH_ON_PICKUP' },
   });
 
   const selectedLocation = useWatch({ control, name: 'pickupLocationId' });
+  const selectedPayment = useWatch({ control, name: 'paymentMethod' });
 
   const createOrder = useMutation({
     mutationFn: ordersService.create,
@@ -54,7 +56,7 @@ export function CheckoutPage() {
       navigate(`/don-hang/${order.id}?moi=1`, { replace: true });
     },
     onError: (error) => {
-      applyServerErrors(error, setError, ['pickupLocationId', 'pickupTime']);
+      applyServerErrors(error, setError, ['pickupLocationId', 'pickupTime', 'paymentMethod']);
       // Giá / tình trạng món có thể đã đổi → tải lại giỏ để hiện cảnh báo mới nhất
       queryClient.invalidateQueries({ queryKey: cartKeys.cart });
     },
@@ -74,13 +76,32 @@ export function CheckoutPage() {
   }
 
   const { data } = cart;
+  const acceptsVietQr = data.stall?.acceptsVietQr ?? false;
+  const paymentOptions = [
+    {
+      value: 'CASH_ON_PICKUP' as const,
+      icon: Banknote,
+      title: 'Tiền mặt khi nhận món',
+      description: 'Thanh toán trực tiếp cho quầy khi nhận món.',
+      disabled: false,
+    },
+    {
+      value: 'VIETQR' as const,
+      icon: QrCode,
+      title: 'Chuyển khoản VietQR',
+      description: acceptsVietQr
+        ? `Quét mã QR bằng app ngân hàng hoặc ví (ZaloPay, MoMo...) trong ${data.stall?.paymentTimeoutMinutes ?? 15} phút; quá hạn đơn tự huỷ.`
+        : 'Quầy này chưa nhận thanh toán chuyển khoản.',
+      disabled: !acceptsVietQr,
+    },
+  ];
 
   const onSubmit = handleSubmit((values) =>
     createOrder.mutate({
       pickupLocationId: Number(values.pickupLocationId),
       pickupTime: values.pickupTime || null,
       customerNote: values.customerNote.trim() || undefined,
-      paymentMethod: 'CASH_ON_PICKUP',
+      paymentMethod: values.paymentMethod === 'VIETQR' && acceptsVietQr ? 'VIETQR' : 'CASH_ON_PICKUP',
       idempotencyKey,
     }),
   );
@@ -147,18 +168,35 @@ export function CheckoutPage() {
 
           {/* Thanh toán */}
           <Card className="p-6">
-            <fieldset>
+            <fieldset aria-describedby={errors.paymentMethod ? 'payment-error' : undefined}>
               <legend className="flex items-center gap-2 text-lg font-bold">
                 <Banknote className="size-5 text-brand-500" aria-hidden /> Thanh toán
               </legend>
-              <label className="mt-4 flex gap-3 rounded-xl border-2 border-brand-500 bg-brand-50 p-4">
-                <input type="radio" checked readOnly className="mt-1 size-4 accent-brand-500" />
-                <span>
-                  <span className="block font-semibold">Tiền mặt khi nhận món</span>
-                  <span className="block text-sm text-navy-500">Thanh toán trực tiếp cho quầy khi nhận món.</span>
-                </span>
-              </label>
-              <p className="mt-3 text-xs text-navy-400">Thanh toán online (ví điện tử, thẻ) chưa được hỗ trợ trong phiên bản này.</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {paymentOptions.map(({ value, icon: Icon, title, description, disabled }) => (
+                  <label
+                    key={value}
+                    className={cn(
+                      'flex gap-3 rounded-xl border-2 p-4 transition',
+                      disabled ? 'cursor-not-allowed border-gray-100 bg-gray-50 opacity-60' : 'cursor-pointer',
+                      !disabled && (selectedPayment === value ? 'border-brand-500 bg-brand-50' : 'border-gray-200 hover:border-brand-200'),
+                    )}
+                  >
+                    <input type="radio" value={value} disabled={disabled} {...register('paymentMethod')} className="mt-1 size-4 accent-brand-500" />
+                    <span>
+                      <span className="flex items-center gap-1.5 font-semibold">
+                        <Icon className="size-4 text-navy-500" aria-hidden /> {title}
+                      </span>
+                      <span className="mt-0.5 block text-sm text-navy-500">{description}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              {errors.paymentMethod && (
+                <p id="payment-error" role="alert" className="mt-2 text-sm text-red-600">
+                  {errors.paymentMethod.message}
+                </p>
+              )}
             </fieldset>
           </Card>
 
@@ -207,7 +245,7 @@ export function CheckoutPage() {
             </div>
           </dl>
           <Button type="submit" size="lg" className="mt-6 w-full" loading={createOrder.isPending}>
-            Đặt món
+            {selectedPayment === 'VIETQR' && acceptsVietQr ? 'Đặt món & lấy mã QR' : 'Đặt món'}
           </Button>
           <p className="mt-3 text-center text-xs text-navy-400">Tổng tiền được tính lại ở máy chủ theo giá hiện tại khi đặt.</p>
         </Card>

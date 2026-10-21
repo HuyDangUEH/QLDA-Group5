@@ -5,7 +5,7 @@ import { ApiError } from '@/lib/api-client';
 import { authService } from '@/services/auth.service';
 import { cartService } from '@/services/cart.service';
 import { ordersService } from '@/services/orders.service';
-import { makeCart, makeOrder } from '@/test/fixtures';
+import { makeCart, makeOrder, makeStall } from '@/test/fixtures';
 import { makeUser, renderRoutes } from '@/test/utils';
 import { CheckoutPage } from './CheckoutPage';
 
@@ -83,10 +83,24 @@ describe('CheckoutPage', () => {
     expect(first![0].idempotencyKey).toBe(second![0].idempotencyKey);
   });
 
-  it('chỉ có phương thức tiền mặt, ghi rõ chưa hỗ trợ thanh toán online', async () => {
+  it('quầy chưa cài tài khoản: chỉ chọn được tiền mặt, chuyển khoản bị khoá kèm lý do', async () => {
     render();
-    expect(await screen.findByText('Tiền mặt khi nhận món')).toBeInTheDocument();
-    expect(screen.getByText(/chưa được hỗ trợ/)).toBeInTheDocument();
+    expect(await screen.findByRole('radio', { name: /Tiền mặt khi nhận món/ })).toBeChecked();
+    expect(screen.getByRole('radio', { name: /Chuyển khoản VietQR/ })).toBeDisabled();
+    expect(screen.getByText('Quầy này chưa nhận thanh toán chuyển khoản.')).toBeInTheDocument();
+  });
+
+  it('quầy nhận chuyển khoản: chọn VietQR thì gửi paymentMethod VIETQR', async () => {
+    vi.mocked(cartService.get).mockResolvedValue(makeCart({ stall: makeStall({ acceptsVietQr: true }) }));
+    vi.mocked(ordersService.create).mockResolvedValue({ order: makeOrder({ id: 7, paymentMethod: 'VIETQR' }), created: true });
+    const { router } = render();
+
+    await userEvent.click(await screen.findByRole('radio', { name: /Sảnh tòa A1/ }));
+    await userEvent.click(screen.getByRole('radio', { name: /Chuyển khoản VietQR/ }));
+    await userEvent.click(screen.getByRole('button', { name: 'Đặt món & lấy mã QR' }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe('/don-hang/7'));
+    expect(vi.mocked(ordersService.create).mock.calls[0]![0]).toMatchObject({ paymentMethod: 'VIETQR' });
   });
 
   it('giỏ không thể thanh toán → quay về trang giỏ', async () => {

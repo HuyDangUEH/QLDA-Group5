@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { useUpdateOrderStatus, type OrderActionMode } from './use-update-order-status';
-import type { OrderStatus } from '@/types/models';
+import { formatCurrency } from '@/lib/utils';
+import { useConfirmPayment, useUpdateOrderStatus, type OrderActionMode } from './use-update-order-status';
+import type { Money, OrderStatus, PaymentMethod } from '@/types/models';
 
 /** Nhãn nút cho từng bước chuyển trạng thái (góc nhìn của quầy) */
 const ACTION_LABELS: Partial<Record<OrderStatus, string>> = {
@@ -13,6 +15,13 @@ const ACTION_LABELS: Partial<Record<OrderStatus, string>> = {
   REJECTED: 'Từ chối',
   CANCELLED: 'Huỷ đơn',
 };
+
+/** Thông tin thanh toán để hiện đúng nút: đơn chuyển khoản chưa có tiền → nút "Đã nhận tiền" */
+export interface OrderPaymentInfo {
+  method: PaymentMethod;
+  awaitingPayment: boolean;
+  total: Money;
+}
 
 /** Các bước cần nhập lý do */
 const NEEDS_REASON: OrderStatus[] = ['REJECTED', 'CANCELLED'];
@@ -25,6 +34,7 @@ export function OrderActions({
   nextStatuses,
   size = 'sm',
   mode = 'vendor',
+  payment,
 }: {
   stallId: number;
   orderId: number;
@@ -32,20 +42,40 @@ export function OrderActions({
   nextStatuses: OrderStatus[];
   size?: 'sm' | 'md';
   mode?: OrderActionMode;
+  payment?: OrderPaymentInfo;
 }) {
   const update = useUpdateOrderStatus(stallId, mode);
+  const confirmPayment = useConfirmPayment(stallId, mode);
   const [reasonFor, setReasonFor] = useState<OrderStatus | null>(null);
   const [reason, setReason] = useState('');
   const [reasonError, setReasonError] = useState('');
+  const [confirmPaidOpen, setConfirmPaidOpen] = useState(false);
 
-  if (nextStatuses.length === 0) return null;
+  const awaitingPayment = payment?.awaitingPayment ?? false;
+  if (nextStatuses.length === 0 && !awaitingPayment) return null;
 
   const forward = nextStatuses.filter((s) => !NEEDS_REASON.includes(s));
   const negative = nextStatuses.filter((s) => NEEDS_REASON.includes(s));
-  const busy = update.isPending;
+  const busy = update.isPending || confirmPayment.isPending;
+  // Đơn đã chuyển khoản: bước cuối chỉ là giao món, không thu tiền nữa
+  const labelOf = (status: OrderStatus) => (status === 'COMPLETED' && payment?.method === 'VIETQR' ? 'Đã giao món' : ACTION_LABELS[status]);
+  const transferContent = orderNumber.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
 
   return (
     <div className="flex flex-wrap gap-2">
+      {awaitingPayment && (
+        <Button
+          size={size}
+          loading={confirmPayment.isPending}
+          disabled={busy}
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirmPaidOpen(true);
+          }}
+        >
+          <BadgeCheck className="size-4" aria-hidden /> Đã nhận tiền
+        </Button>
+      )}
       {forward.map((status) => (
         <Button
           key={status}
@@ -57,7 +87,7 @@ export function OrderActions({
             update.mutate({ orderId, status });
           }}
         >
-          {ACTION_LABELS[status]}
+          {labelOf(status)}
         </Button>
       ))}
       {negative.map((status) => (
@@ -77,6 +107,19 @@ export function OrderActions({
           {ACTION_LABELS[status]}
         </Button>
       ))}
+
+      {payment && (
+        <ConfirmDialog
+          open={confirmPaidOpen}
+          title={`Xác nhận đã nhận tiền đơn ${orderNumber}?`}
+          description={`Chỉ xác nhận sau khi app ngân hàng của quầy báo đã nhận ${formatCurrency(payment.total)} với nội dung ${transferContent}.`}
+          confirmLabel="Đã nhận tiền"
+          cancelLabel="Chưa"
+          loading={confirmPayment.isPending}
+          onCancel={() => setConfirmPaidOpen(false)}
+          onConfirm={() => confirmPayment.mutate(orderId, { onSettled: () => setConfirmPaidOpen(false) })}
+        />
+      )}
 
       <ConfirmDialog
         open={reasonFor !== null}

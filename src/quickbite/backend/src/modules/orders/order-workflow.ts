@@ -1,7 +1,7 @@
 import type { OrderStatus, Prisma } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../utils/app-error.js';
-import { ORDER_STATUS_LABELS, allowedNextStatuses, findTransition, type OrderActor } from './order-status.js';
+import { ORDER_STATUS_LABELS, findTransition, isAwaitingTransfer, nextStatusesFor, type OrderActor } from './order-status.js';
 import { orderDetailInclude, toOrderDto } from './orders.mapper.js';
 
 /** Thông báo gửi sinh viên khi đơn đổi trạng thái */
@@ -41,8 +41,13 @@ export async function transitionOrder({ orderId, stallId, to, actor, userId, rea
   if (!transition) {
     throw AppError.unprocessable(
       `Không thể chuyển đơn từ "${ORDER_STATUS_LABELS[order.status]}" sang "${ORDER_STATUS_LABELS[to]}"`,
-      { allowed: allowedNextStatuses(order.status, actor) },
+      { allowed: nextStatusesFor(order, actor) },
     );
+  }
+  if (to === 'ACCEPTED' && isAwaitingTransfer(order)) {
+    throw AppError.unprocessable('Đơn chuyển khoản chưa được thanh toán. Hãy chờ tiền về hoặc bấm "Đã nhận tiền" sau khi kiểm tra tài khoản.', {
+      allowed: nextStatusesFor(order, actor),
+    });
   }
   const trimmedReason = reason?.trim() || undefined;
   if (transition.requiresReason && !trimmedReason) {
@@ -53,10 +58,11 @@ export async function transitionOrder({ orderId, stallId, to, actor, userId, rea
   const data: Prisma.OrderUpdateManyMutationInput = { status: to };
   if (to === 'ACCEPTED') data.acceptedAt = now;
   if (to === 'READY_FOR_PICKUP') data.readyAt = now;
+  // Tiền mặt: quầy thu tiền khi giao món. Chuyển khoản: đã PAID từ trước, giữ nguyên thông tin xác nhận
+  const collectsCash = to === 'COMPLETED' && order.paymentMethod === 'CASH_ON_PICKUP' && order.paymentStatus === 'UNPAID';
   if (to === 'COMPLETED') {
-    // Thanh toán tiền mặt: quầy xác nhận đã thu tiền khi giao món
     data.completedAt = now;
-    data.paymentStatus = 'PAID';
+    if (collectsCash) data.paymentStatus = 'PAID';
   }
   if (to === 'CANCELLED' || to === 'REJECTED') {
     data.cancelledAt = now;
@@ -65,11 +71,14 @@ export async function transitionOrder({ orderId, stallId, to, actor, userId, rea
   }
 
   await prisma.$transaction(async (tx) => {
-    const { count } = await tx.order.updateMany({ where: { id: order.id, status: order.status }, data });
+    // Điều kiện cả trạng thái thanh toán: tiền chuyển khoản về đúng lúc này thì không ghi đè
+    const { count } = await tx.order.updateMany({ where: { id: order.id, status: order.status, paymentStatus: order.paymentStatus }, data });
     if (count === 0) throw AppError.conflict('Trạng thái đơn vừa được người khác thay đổi, vui lòng tải lại');
 
+    if (collectsCash) {
+      await tx.payment.updateMany({ where: { orderId: order.id }, data: { status: 'PAID', provider: 'CASH', paidAt: now, confirmedById: userId } });
+    }
     if (to === 'COMPLETED') {
-      await tx.payment.updateMany({ where: { orderId: order.id }, data: { status: 'PAID', paidAt: now, confirmedById: userId } });
       // Cập nhật số phần đã bán để sắp xếp "bán chạy"
       for (const item of order.items) {
         await tx.menuItem.update({ where: { id: item.menuItemId }, data: { soldCount: { increment: item.quantity } } });
@@ -83,7 +92,10 @@ export async function transitionOrder({ orderId, stallId, to, actor, userId, rea
       data: { orderId: order.id, fromStatus: order.status, toStatus: to, changedById: userId, note: trimmedReason ?? null },
     });
 
-    const message = STUDENT_MESSAGES[to]?.(order.stall.name, trimmedReason);
+    let message = STUDENT_MESSAGES[to]?.(order.stall.name, trimmedReason);
+    if (message && (to === 'CANCELLED' || to === 'REJECTED') && order.paymentStatus === 'PAID') {
+      message += ' Số tiền bạn đã chuyển khoản sẽ được quầy hoàn lại, vui lòng liên hệ quầy nếu cần.';
+    }
     if (message) {
       await tx.notification.create({
         data: {
@@ -98,5 +110,5 @@ export async function transitionOrder({ orderId, stallId, to, actor, userId, rea
   });
 
   const updated = await prisma.order.findUniqueOrThrow({ where: { id: order.id }, include: orderDetailInclude });
-  return { ...toOrderDto(updated), nextStatuses: allowedNextStatuses(updated.status, actor) };
+  return { ...toOrderDto(updated), nextStatuses: nextStatusesFor(updated, actor) };
 }
