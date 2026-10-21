@@ -4,8 +4,9 @@ import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../utils/app-error.js';
 import { dateOnlySchema, vnDayEnd, vnDayStart } from '../../utils/dates.js';
 import { toSkipTake } from '../../utils/validation.js';
-import { allowedNextStatuses, type OrderActor } from '../orders/order-status.js';
+import { isAwaitingTransfer, nextStatusesFor, type OrderActor } from '../orders/order-status.js';
 import { orderDetailInclude, toOrderDto } from '../orders/orders.mapper.js';
+import { paymentsService } from '../payments/payments.service.js';
 
 /** Nhóm trạng thái tương ứng các tab trong màn hình xử lý đơn */
 export const VENDOR_ORDER_TABS = {
@@ -39,6 +40,7 @@ const listSelect = {
   id: true,
   orderNumber: true,
   status: true,
+  paymentMethod: true,
   paymentStatus: true,
   total: true,
   pickupTime: true,
@@ -51,6 +53,8 @@ const listSelect = {
 
 export const vendorOrdersService = {
   async list(stallId: number, query: ListQuery, actor: OrderActor) {
+    // Huỷ các đơn chuyển khoản đã quá hạn trước khi hiển thị hàng đợi
+    await paymentsService.expireUnpaidOrders();
     const base: Prisma.OrderWhereInput = {
       stallId,
       ...((query.from || query.to) && {
@@ -88,7 +92,8 @@ export const vendorOrdersService = {
         ...o,
         total: o.total.toFixed(0),
         itemCount: o.items.reduce((n, i) => n + i.quantity, 0),
-        nextStatuses: allowedNextStatuses(o.status, actor),
+        awaitingPayment: isAwaitingTransfer(o) && o.status === 'PENDING',
+        nextStatuses: nextStatusesFor(o, actor),
       })),
       total,
       tabCounts,
@@ -96,8 +101,9 @@ export const vendorOrdersService = {
   },
 
   async detail(stallId: number, orderId: number, actor: OrderActor) {
+    await paymentsService.expireUnpaidOrders({ orderId });
     const order = await prisma.order.findFirst({ where: { id: orderId, stallId }, include: orderDetailInclude });
     if (!order) throw AppError.notFound('Không tìm thấy đơn hàng');
-    return { ...toOrderDto(order), nextStatuses: allowedNextStatuses(order.status, actor) };
+    return { ...toOrderDto(order), nextStatuses: nextStatusesFor(order, actor) };
   },
 };

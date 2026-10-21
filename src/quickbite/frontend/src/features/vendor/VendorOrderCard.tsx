@@ -4,6 +4,7 @@ import type { VendorOrderRow } from '@/types/vendor';
 import { formatCurrency, formatDateTime, formatTime } from '@/lib/utils';
 import { useNow } from '@/hooks/use-now';
 import { OrderActions } from './order-actions';
+import { PaymentBadge } from '@/features/payments/PaymentBadge';
 
 /** Phiếu đơn cho màn hình xử lý của quầy: món, ghi chú, người nhận, nút xử lý */
 export function VendorOrderCard({ order, stallId, onOpen }: { order: VendorOrderRow; stallId: number; onOpen: (id: number) => void }) {
@@ -53,8 +54,17 @@ export function VendorOrderCard({ order, stallId, onOpen }: { order: VendorOrder
       </button>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3">
-        <span className="font-extrabold">{formatCurrency(order.total)}</span>
-        <OrderActions stallId={stallId} orderId={order.id} orderNumber={order.orderNumber} nextStatuses={order.nextStatuses} />
+        <span className="flex flex-wrap items-center gap-2">
+          <span className="font-extrabold">{formatCurrency(order.total)}</span>
+          <PaymentBadge method={order.paymentMethod} status={order.paymentStatus} />
+        </span>
+        <OrderActions
+          stallId={stallId}
+          orderId={order.id}
+          orderNumber={order.orderNumber}
+          nextStatuses={order.nextStatuses}
+          payment={{ method: order.paymentMethod, awaitingPayment: order.awaitingPayment, total: order.total }}
+        />
       </div>
     </article>
   );

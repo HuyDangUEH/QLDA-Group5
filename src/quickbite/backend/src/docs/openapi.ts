@@ -116,6 +116,7 @@ export const openApiSpec = {
     { name: 'Thông báo' },
     { name: 'Giỏ hàng', description: 'Chỉ sinh viên. Mỗi giỏ chỉ chứa món của một quầy.' },
     { name: 'Đơn hàng (sinh viên)' },
+    { name: 'Thanh toán', description: 'Chuyển khoản VietQR vào tài khoản của quầy; xác nhận qua webhook SePay hoặc quầy tự xác nhận' },
     { name: 'Chủ quầy', description: 'Chủ quầy / nhân viên quầy (chỉ quầy được gán) và admin' },
     { name: 'Quản trị', description: 'Chỉ ADMIN. Thao tác thay đổi dữ liệu được ghi nhật ký.' },
   ],
@@ -166,6 +167,8 @@ export const openApiSpec = {
           closeTime: { type: 'string', example: '20:00' },
           isOpenNow: { type: 'boolean' },
           canOrderNow: { type: 'boolean', description: 'Đang hoạt động + bật nhận đơn + trong giờ mở cửa' },
+          acceptsVietQr: { type: 'boolean', description: 'Quầy nhận thanh toán chuyển khoản VietQR' },
+          paymentTimeoutMinutes: { type: 'integer', minimum: 5, maximum: 60, description: 'Số phút được phép chuyển khoản; quá hạn đơn tự huỷ' },
           rating: { type: 'object', properties: { average: { type: ['number', 'null'] }, count: { type: 'integer' } } },
         },
       },
@@ -202,7 +205,7 @@ export const openApiSpec = {
           id: { type: 'integer' },
           orderNumber: { type: 'string', example: 'QB-261016-4F7K' },
           status: ORDER_STATUS,
-          paymentMethod: { type: 'string', enum: ['CASH_ON_PICKUP'] },
+          paymentMethod: { type: 'string', enum: ['CASH_ON_PICKUP', 'VIETQR'] },
           paymentStatus: { type: 'string', enum: ['UNPAID', 'PAID', 'REFUNDED', 'VOIDED'] },
           subtotal: money,
           serviceFee: money,
@@ -211,6 +214,28 @@ export const openApiSpec = {
           pickupTime: { type: ['string', 'null'], format: 'date-time' },
           items: { type: 'array', items: { type: 'object', properties: { itemName: { type: 'string' }, unitPrice: money, quantity: { type: 'integer' }, note: { type: ['string', 'null'] }, lineTotal: money } } },
           statusHistory: { type: 'array', items: { type: 'object', properties: { toStatus: ORDER_STATUS, createdAt: { type: 'string', format: 'date-time' }, note: { type: ['string', 'null'] } } } },
+          awaitingPayment: { type: 'boolean', description: 'Đơn chuyển khoản đang chờ tiền về (quầy chưa nhận đơn được)' },
+          vietQr: {
+            description: 'Thông tin chuyển khoản; null với đơn tiền mặt',
+            oneOf: [
+              {
+                type: 'object',
+                properties: {
+                  bankBin: { type: 'string', example: '970436' },
+                  bankShortName: { type: 'string', example: 'Vietcombank' },
+                  accountNo: { type: 'string' },
+                  accountName: { type: 'string', example: 'NGUYEN VAN DAT' },
+                  amount: money,
+                  content: { type: 'string', example: 'QB2610164F7K', description: 'Nội dung chuyển khoản bắt buộc' },
+                  expiresAt: { type: 'string', format: 'date-time' },
+                  paidAt: { type: ['string', 'null'], format: 'date-time' },
+                  confirmedBy: { type: ['string', 'null'], enum: ['SEPAY', 'MANUAL', null] },
+                  qrPayload: { type: ['string', 'null'], description: 'Chuỗi EMVCo để vẽ mã QR; chỉ có khi còn chờ thanh toán' },
+                },
+              },
+              { type: 'null' },
+            ],
+          },
           canCancel: { type: 'boolean' },
           nextStatuses: { type: 'array', items: ORDER_STATUS, description: 'Chỉ có ở API chủ quầy / admin' },
         },
@@ -299,6 +324,23 @@ export const openApiSpec = {
     '/orders/{id}': { get: op({ tag: 'Đơn hàng (sinh viên)', summary: 'Chi tiết & theo dõi đơn', params: [path('id', 'ID đơn')], response: ok({ type: 'object', properties: { order: ref('Order') } }) }) },
     '/orders/{id}/cancel': { post: op({ tag: 'Đơn hàng (sinh viên)', summary: 'Huỷ đơn (chỉ khi còn PENDING)', params: [path('id', 'ID đơn')], body: cancelOrderSchema, errors: { 422: err('Đơn không còn huỷ được') } }) },
     '/orders/{id}/review': { post: op({ tag: 'Đơn hàng (sinh viên)', summary: 'Đánh giá đơn đã hoàn thành', params: [path('id', 'ID đơn')], body: createReviewSchema, status: 201, errors: { 409: err('Đã đánh giá'), 422: err('Đơn chưa hoàn thành') } }) },
+    // ─────────── Thanh toán ───────────
+    '/payments/banks': { get: op({ tag: 'Thanh toán', summary: 'Ngân hàng hỗ trợ VietQR (mã BIN)', auth: false }) },
+    '/payments/sepay/webhook': {
+      post: op({
+        tag: 'Thanh toán',
+        summary: 'Webhook biến động số dư từ SePay',
+        description:
+          'SePay gọi khi tài khoản của quầy có tiền vào. Xác thực bằng header `Authorization: Apikey <SEPAY_WEBHOOK_API_KEY>`. ' +
+          'Tìm đơn theo nội dung chuyển khoản (QB + mã đơn), kiểm tra số tiền & tài khoản nhận rồi đánh dấu đã thanh toán. ' +
+          'Giao dịch không khớp vẫn trả 200 kèm `matched: false` và `reason`.',
+        auth: false,
+        body: { type: 'object', required: ['id', 'transferType', 'transferAmount'], properties: { id: { type: 'integer' }, accountNumber: { type: 'string' }, code: { type: ['string', 'null'] }, content: { type: 'string' }, transferType: { type: 'string', enum: ['in', 'out'] }, transferAmount: { type: 'number' }, referenceCode: { type: 'string' } } },
+        response: ok({ type: 'object', properties: { matched: { type: 'boolean' }, reason: { type: 'string' }, orderNumber: { type: 'string' } } }),
+        errors: { 401: err('Sai API key'), 404: err('Webhook chưa bật (thiếu SEPAY_WEBHOOK_API_KEY)') },
+      }),
+    },
+
     '/reviews/{id}/report': {
       post: op({ tag: 'Đơn hàng (sinh viên)', summary: 'Báo cáo đánh giá không phù hợp', params: [path('id', 'ID đánh giá')], body: { type: 'object', required: ['reason'], properties: { reason: { type: 'string', minLength: 5, maxLength: 255 } } } }),
     },
@@ -325,6 +367,9 @@ export const openApiSpec = {
     '/vendor/stalls/{stallId}/orders/{orderId}': { get: op({ tag: 'Chủ quầy', summary: 'Chi tiết đơn + bước tiếp theo hợp lệ', params: [path('stallId', 'ID quầy'), path('orderId', 'ID đơn')] }) },
     '/vendor/stalls/{stallId}/orders/{orderId}/status': {
       patch: op({ tag: 'Chủ quầy', summary: 'Chuyển trạng thái đơn', description: 'Theo máy trạng thái; REJECTED / CANCELLED bắt buộc `reason`.', params: [path('stallId', 'ID quầy'), path('orderId', 'ID đơn')], body: updateOrderStatusSchema, errors: { 409: err('Trạng thái vừa bị người khác đổi'), 422: err('Chuyển trạng thái không hợp lệ') } }),
+    },
+    '/vendor/stalls/{stallId}/orders/{orderId}/confirm-payment': {
+      post: op({ tag: 'Chủ quầy', summary: 'Xác nhận đã nhận chuyển khoản (thủ công)', description: 'Dùng khi không bật webhook SePay: quầy kiểm tra app ngân hàng rồi xác nhận.', params: [path('stallId', 'ID quầy'), path('orderId', 'ID đơn')], errors: { 409: err('Đã xác nhận trước đó'), 422: err('Đơn trả tiền mặt') } }),
     },
     '/vendor/stalls/{stallId}/menu-items': {
       get: op({ tag: 'Chủ quầy', summary: 'Thực đơn của quầy', params: [path('stallId', 'ID quầy'), query('status', 'Trạng thái', { type: 'string', enum: ['active', 'inactive', 'all'] }), query('q', 'Tên món'), query('categoryId', 'Danh mục', { type: 'integer' })] }),

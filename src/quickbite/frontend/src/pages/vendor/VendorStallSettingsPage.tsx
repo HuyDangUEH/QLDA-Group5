@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/Switch';
 import { ErrorState, Spinner } from '@/components/ui/States';
 import { inputClass } from '@/components/ui/styles';
 import { ImageUploader } from '@/features/vendor/ImageUploader';
+import { BankAccountCard } from '@/features/vendor/BankAccountCard';
 import { useCurrentStallId } from '@/features/vendor/vendor-stall-context';
 import { applyServerErrors } from '@/lib/form-errors';
 import { vendorKeys, vendorService } from '@/services/vendor.service';
@@ -156,6 +157,11 @@ function SettingsForm({ detail }: { detail: VendorStallDetail }) {
           </Card>
         </div>
       </form>
+
+      {/* Form riêng (không lồng trong form thông tin quầy) */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]">
+        <BankAccountCard stall={stall} canEdit={canEdit} />
+      </div>
     </div>
   );
 }

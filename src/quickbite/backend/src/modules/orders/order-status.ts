@@ -1,4 +1,4 @@
-import type { OrderStatus, Role } from '@prisma/client';
+import type { OrderStatus, PaymentMethod, PaymentStatus, Role } from '@prisma/client';
 
 /**
  * Máy trạng thái đơn hàng (xem docs/business-rules.md).
@@ -46,6 +46,26 @@ export function findTransition(from: OrderStatus, to: OrderStatus, actor: OrderA
 /** Các trạng thái tiếp theo mà actor được phép chuyển tới */
 export function allowedNextStatuses(from: OrderStatus, actor: OrderActor): OrderStatus[] {
   return ORDER_TRANSITIONS[from].filter((t) => t.actors.includes(actor)).map((t) => t.to);
+}
+
+/** Đơn chuyển khoản VietQR chưa nhận được tiền: quầy chưa được nhận đơn */
+export const isAwaitingTransfer = (order: { paymentMethod: PaymentMethod; paymentStatus: PaymentStatus }) =>
+  order.paymentMethod === 'VIETQR' && order.paymentStatus === 'UNPAID';
+
+/**
+ * Các bước tiếp theo hợp lệ, có tính tới thanh toán:
+ * - Đơn VietQR chưa thanh toán: quầy chưa được "Nhận đơn" (chỉ từ chối được)
+ * - Đơn đã thanh toán chuyển khoản: sinh viên không tự huỷ (phải liên hệ quầy để được hoàn tiền)
+ */
+export function nextStatusesFor(
+  order: { status: OrderStatus; paymentMethod: PaymentMethod; paymentStatus: PaymentStatus },
+  actor: OrderActor,
+): OrderStatus[] {
+  return allowedNextStatuses(order.status, actor).filter((to) => {
+    if (to === 'ACCEPTED' && isAwaitingTransfer(order)) return false;
+    if (to === 'CANCELLED' && actor === 'STUDENT_OWNER' && order.paymentStatus === 'PAID') return false;
+    return true;
+  });
 }
 
 export function actorForRole(role: Role, isOwner: boolean, isStallStaff: boolean): OrderActor | null {

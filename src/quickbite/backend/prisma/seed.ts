@@ -104,10 +104,10 @@ async function main() {
   // ─────────── Điểm nhận món ───────────
   console.log('📍 Tạo điểm nhận món...');
   const pickupLocations = await Promise.all([
-    prisma.campusPickupLocation.create({ data: { name: 'Sảnh tòa A1', building: 'Tòa A1', description: 'Quầy nhận món cạnh thang máy, tầng trệt' } }),
-    prisma.campusPickupLocation.create({ data: { name: 'Thư viện trung tâm', building: 'Thư viện', description: 'Kệ nhận món bên phải cửa ra vào' } }),
-    prisma.campusPickupLocation.create({ data: { name: 'Ký túc xá khu B', building: 'KTX B', description: 'Phòng trực, tầng 1' } }),
-    prisma.campusPickupLocation.create({ data: { name: 'Cổng chính', building: 'Nhà bảo vệ', description: 'Bàn nhận món cạnh nhà bảo vệ' } }),
+    prisma.campusPickupLocation.create({ data: { name: 'Cổng chính cơ sở B', building: 'Cơ sở B', description: 'Bàn nhận món cạnh nhà bảo vệ, cổng chính' } }),
+    prisma.campusPickupLocation.create({ data: { name: 'Căn tin cơ sở B', building: 'Cơ sở B', description: 'Quầy nhận món trong căn tin' } }),
+    prisma.campusPickupLocation.create({ data: { name: 'Căn tin cơ sở N', building: 'Cơ sở N', description: 'Quầy nhận món trong căn tin' } }),
+    prisma.campusPickupLocation.create({ data: { name: 'Căn tin ký túc xá', building: 'Ký túc xá', description: 'Quầy nhận món trong căn tin ký túc xá' } }),
     prisma.campusPickupLocation.create({ data: { name: 'Nhà thi đấu (tạm đóng)', building: 'Nhà thi đấu', description: 'Đang sửa chữa', isActive: false } }),
   ]);
   const activePickups = pickupLocations.filter((p) => p.isActive);
@@ -118,6 +118,8 @@ async function main() {
   type SeedStall = {
     name: string; slug: string; description: string; image: string; location: string; phone: string;
     openTime: string; closeTime: string;
+    /** Tài khoản nhận chuyển khoản VietQR (số tài khoản mẫu, không có thật) */
+    bank?: { bankBin: string; bankAccountNo: string; bankAccountName: string };
     owner: { fullName: string; email: string };
     staff?: { fullName: string; email: string };
     items: SeedMenuItem[];
@@ -127,6 +129,7 @@ async function main() {
     {
       name: 'Bếp Nhà Sinh Viên',
       slug: 'bep-nha-sinh-vien',
+      bank: { bankBin: '970436', bankAccountNo: '1023456789', bankAccountName: 'BEP NHA SINH VIEN' },
       description: 'Cơm nhà nấu, phần ăn đầy đặn, giá sinh viên. Nổi tiếng với cơm chiên và thịt nướng.',
       image: 'com-chien-duong-chau',
       location: 'Căn tin tòa A, quầy số 1',
@@ -181,6 +184,7 @@ async function main() {
     {
       name: 'Trà Sữa & Cà Phê Chill',
       slug: 'tra-sua-ca-phe-chill',
+      bank: { bankBin: '970422', bankAccountNo: '0888123456', bankAccountName: 'TRA SUA CA PHE CHILL' },
       description: 'Trà sữa trân châu tự nấu, cà phê pha máy và sinh tố — tiếp năng lượng cho mùa thi.',
       image: 'tra-sua-tran-chau-duong-den',
       location: 'Sân trước thư viện',
@@ -220,6 +224,7 @@ async function main() {
       data: {
         name: s.name, slug: s.slug, description: s.description, imageUrl: img(s.image),
         location: s.location, phone: s.phone, openTime: s.openTime, closeTime: s.closeTime,
+        ...s.bank,
       },
     });
     const memberships: { userId: number; stallId: number; role: VendorRole }[] = [

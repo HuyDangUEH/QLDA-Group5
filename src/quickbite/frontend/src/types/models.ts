@@ -46,6 +46,10 @@ export interface StallSummary {
   isOpenNow: boolean;
   /** Đang nhận đơn: hoạt động + chủ quầy bật nhận đơn + trong giờ mở cửa */
   canOrderNow: boolean;
+  /** Quầy nhận thanh toán chuyển khoản VietQR */
+  acceptsVietQr: boolean;
+  /** Số phút được phép chuyển khoản trước khi đơn tự huỷ */
+  paymentTimeoutMinutes: number;
   rating: Rating;
   menuItemCount?: number;
 }
@@ -136,7 +140,7 @@ export interface PickupLocation {
 
 export type OrderStatus = 'PENDING' | 'ACCEPTED' | 'PREPARING' | 'READY_FOR_PICKUP' | 'COMPLETED' | 'CANCELLED' | 'REJECTED';
 export type PaymentStatus = 'UNPAID' | 'PAID' | 'REFUNDED' | 'VOIDED';
-export type PaymentMethod = 'CASH_ON_PICKUP';
+export type PaymentMethod = 'CASH_ON_PICKUP' | 'VIETQR';
 
 export interface OrderItem {
   id: number;
@@ -180,7 +184,35 @@ export interface Order {
   items: OrderItem[];
   statusHistory: OrderStatusChange[];
   review: { id: number; rating: number; comment: string | null; createdAt: string } | null;
+  /** Thông tin chuyển khoản; null với đơn tiền mặt */
+  vietQr: VietQrInfo | null;
+  /** Đơn chuyển khoản đang chờ tiền về (quầy chưa nhận đơn được) */
+  awaitingPayment: boolean;
   canCancel: boolean;
+}
+
+export interface VietQrInfo {
+  bankBin: string;
+  bankShortName: string;
+  bankName: string | null;
+  accountNo: string;
+  accountName: string | null;
+  amount: Money;
+  /** Nội dung chuyển khoản bắt buộc, vd: QB2610164F7K */
+  content: string;
+  expiresAt: string | null;
+  paidAt: string | null;
+  /** SEPAY = ngân hàng báo tự động, MANUAL = quầy xác nhận thủ công */
+  confirmedBy: 'SEPAY' | 'MANUAL' | null;
+  /** Chuỗi EMVCo để vẽ mã QR; chỉ có khi còn chờ thanh toán */
+  qrPayload: string | null;
+}
+
+export interface Bank {
+  bin: string;
+  code: string;
+  shortName: string;
+  name: string;
 }
 
 export interface OrderSummary {

@@ -40,10 +40,11 @@ enum OrderStatus {
   REJECTED
 }
 
-/// Phiên bản đầu chỉ hỗ trợ trả tiền mặt khi nhận món.
-/// Thêm cổng thanh toán sau này bằng cách bổ sung giá trị mới (vd: VNPAY, MOMO).
+/// CASH_ON_PICKUP: trả tiền mặt khi nhận món
+/// VIETQR: chuyển khoản ngân hàng bằng mã VietQR vào tài khoản của quầy (xem docs/payments.md)
 enum PaymentMethod {
   CASH_ON_PICKUP
+  VIETQR
 }
 
 enum PaymentStatus {
@@ -97,22 +98,30 @@ model User {
 // ─────────────────────────── Quầy ăn ───────────────────────────
 
 model FoodStall {
-  id                Int      @id @default(autoincrement())
-  name              String   @db.VarChar(120)
-  slug              String   @unique @db.VarChar(140)
-  description       String?  @db.Text
-  imageUrl          String?  @db.VarChar(500)
-  location          String   @db.VarChar(200)
-  phone             String?  @db.VarChar(20)
+  id                    Int      @id @default(autoincrement())
+  name                  String   @db.VarChar(120)
+  slug                  String   @unique @db.VarChar(140)
+  description           String?  @db.Text
+  imageUrl              String?  @db.VarChar(500)
+  location              String   @db.VarChar(200)
+  phone                 String?  @db.VarChar(20)
   /// Giờ mở/đóng cửa định dạng "HH:mm" (giờ Việt Nam)
-  openTime          String   @default("07:00") @db.VarChar(5)
-  closeTime         String   @default("20:00") @db.VarChar(5)
+  openTime              String   @default("07:00") @db.VarChar(5)
+  closeTime             String   @default("20:00") @db.VarChar(5)
   /// Admin bật/tắt quầy trên toàn hệ thống
-  isActive          Boolean  @default(true)
+  isActive              Boolean  @default(true)
   /// Chủ quầy tạm ngưng nhận đơn (vd: hết nguyên liệu)
-  isAcceptingOrders Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  isAcceptingOrders     Boolean  @default(true)
+  /// Tài khoản nhận chuyển khoản VietQR (đủ cả 3 trường thì quầy mới nhận thanh toán chuyển khoản)
+  /// Mã BIN ngân hàng theo NAPAS, vd: 970436 = Vietcombank
+  bankBin               String?  @db.VarChar(10)
+  bankAccountNo         String?  @db.VarChar(30)
+  /// Tên chủ tài khoản, viết HOA không dấu như trên app ngân hàng
+  bankAccountName       String?  @db.VarChar(100)
+  /// Số phút sinh viên được phép chuyển khoản VietQR; quá hạn chưa nhận tiền thì đơn tự huỷ
+  paymentTimeoutMinutes Int      @default(15)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   memberships VendorMembership[]
   menuItems   MenuItem[]
@@ -320,25 +329,36 @@ model OrderStatusHistory {
 
 // ─────────────────────────── Thanh toán ───────────────────────────
 
-/// Tách riêng để sau này tích hợp cổng thanh toán (lưu mã giao dịch, provider...)
+/// Thông tin thanh toán của đơn (mã giao dịch, nguồn xác nhận, tài khoản nhận tiền...)
 model Payment {
-  id            Int           @id @default(autoincrement())
-  orderId       Int           @unique
-  method        PaymentMethod
-  status        PaymentStatus @default(UNPAID)
-  amount        Decimal       @db.Decimal(12, 2)
-  provider      String?       @db.VarChar(50)
-  providerRef   String?       @db.VarChar(120)
-  /// Người xác nhận đã thu tiền (với thanh toán thủ công)
-  confirmedById Int?
-  paidAt        DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id              Int           @id @default(autoincrement())
+  orderId         Int           @unique
+  method          PaymentMethod
+  status          PaymentStatus @default(UNPAID)
+  amount          Decimal       @db.Decimal(12, 2)
+  /// Nguồn xác nhận đã nhận tiền: SEPAY (webhook tự động) | MANUAL (quầy tự xác nhận) | CASH
+  provider        String?       @db.VarChar(50)
+  /// Mã giao dịch phía ngân hàng / SePay (chống xử lý trùng webhook)
+  providerRef     String?       @unique @db.VarChar(120)
+  /// Nội dung chuyển khoản bắt buộc, vd: QB2610164F7K (dùng để khớp giao dịch với đơn)
+  transferContent String?       @unique @db.VarChar(40)
+  /// Ảnh chụp tài khoản nhận tiền của quầy tại thời điểm đặt (quầy đổi tài khoản sau đó không ảnh hưởng đơn cũ)
+  bankBin         String?       @db.VarChar(10)
+  bankAccountNo   String?       @db.VarChar(30)
+  bankAccountName String?       @db.VarChar(100)
+  /// Hạn chót chuyển khoản; quá hạn mà chưa nhận tiền thì đơn tự huỷ
+  expiresAt       DateTime?
+  /// Người xác nhận đã thu tiền (tiền mặt hoặc chuyển khoản xác nhận thủ công)
+  confirmedById   Int?
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   order       Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
   confirmedBy User? @relation("PaymentConfirmedBy", fields: [confirmedById], references: [id], onDelete: SetNull)
 
   @@index([status])
+  @@index([method, status, expiresAt])
   @@map("payments")
 }
 

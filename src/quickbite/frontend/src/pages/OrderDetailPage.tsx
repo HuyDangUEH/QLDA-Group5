@@ -16,6 +16,8 @@ import { PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS, isActiveStatus } from '@/
 import type { Order } from '@/types/models';
 import { formatCurrency, formatDateTime, formatTime } from '@/lib/utils';
 import { OrderReviewCard } from '@/features/reviews/ReviewForm';
+import { VietQrPaymentCard } from '@/features/payments/VietQrPaymentCard';
+import { PaymentBadge } from '@/features/payments/PaymentBadge';
 import { NotFoundPage } from './NotFoundPage';
 
 /** Chi tiết & theo dõi đơn. Khi vừa đặt xong (?moi=1) hiển thị thêm lời xác nhận và hướng dẫn nhận món. */
@@ -29,8 +31,13 @@ export function OrderDetailPage() {
     queryKey: orderKeys.detail(id),
     queryFn: () => ordersService.detail(id),
     enabled: valid,
-    // Tự cập nhật trạng thái mỗi 15 giây khi đơn còn đang xử lý
-    refetchInterval: (query) => (query.state.data && isActiveStatus(query.state.data.status) ? 15_000 : false),
+    // Tự cập nhật: 5 giây khi đang chờ chuyển khoản (để biết ngay khi tiền về), 15 giây khi đơn còn đang xử lý
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (!data) return false;
+      if (data.awaitingPayment) return 5_000;
+      return isActiveStatus(data.status) ? 15_000 : false;
+    },
   });
 
   if (!valid || (error instanceof ApiError && error.status === 404)) return <NotFoundPage />;
@@ -78,15 +85,37 @@ function OrderDetail({ order, justPlaced }: { order: Order; justPlaced: boolean 
     },
   });
 
+  const byTransfer = order.paymentMethod === 'VIETQR';
+  const paidByTransfer = byTransfer && order.paymentStatus === 'PAID';
+
   return (
     <>
-      {justPlaced && order.status === 'PENDING' && (
+      {justPlaced && order.status === 'PENDING' && !paidByTransfer && (
         <div role="status" className="mt-6 flex items-start gap-3 rounded-2xl bg-green-50 p-5 text-green-900 ring-1 ring-green-200">
           <CheckCircle2 className="mt-0.5 size-6 shrink-0 text-green-600" aria-hidden />
           <div>
             <p className="text-lg font-bold">Đặt món thành công! 🎉</p>
             <p className="mt-1 text-sm">
-              Quầy <strong>{order.stall.name}</strong> sẽ xác nhận đơn trong ít phút. Trang này tự cập nhật trạng thái, bạn không cần tải lại.
+              {order.awaitingPayment ? (
+                <>
+                  Vui lòng quét mã QR bên dưới để chuyển khoản. Quầy <strong>{order.stall.name}</strong> sẽ nhận đơn ngay khi nhận được tiền.
+                </>
+              ) : (
+                <>
+                  Quầy <strong>{order.stall.name}</strong> sẽ xác nhận đơn trong ít phút. Trang này tự cập nhật trạng thái, bạn không cần tải lại.
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+      {paidByTransfer && order.status === 'PENDING' && (
+        <div role="status" className="mt-6 flex items-start gap-3 rounded-2xl bg-green-50 p-5 text-green-900 ring-1 ring-green-200">
+          <CheckCircle2 className="mt-0.5 size-6 shrink-0 text-green-600" aria-hidden />
+          <div>
+            <p className="text-lg font-bold">Thanh toán thành công!</p>
+            <p className="mt-1 text-sm">
+              Quầy <strong>{order.stall.name}</strong> đã nhận {formatCurrency(order.total)}. Đơn đang chờ quầy xác nhận.
             </p>
           </div>
         </div>
@@ -98,8 +127,22 @@ function OrderDetail({ order, justPlaced }: { order: Order; justPlaced: boolean 
           <h1 className="font-mono text-3xl font-extrabold tracking-tight">{order.orderNumber}</h1>
           <p className="mt-1 text-sm text-navy-500">Đặt lúc {formatDateTime(order.createdAt)}</p>
         </div>
-        <OrderStatusBadge status={order.status} className="px-3 py-1 text-sm" />
+        {order.awaitingPayment ? (
+          <PaymentBadge method={order.paymentMethod} status={order.paymentStatus} className="px-3 py-1 text-sm" />
+        ) : (
+          <OrderStatusBadge status={order.status} className="px-3 py-1 text-sm" />
+        )}
       </div>
+
+      {order.awaitingPayment && order.vietQr?.qrPayload && (
+        <div className="mt-6">
+          <VietQrPaymentCard
+            info={order.vietQr}
+            orderNumber={order.orderNumber}
+            onExpired={() => queryClient.invalidateQueries({ queryKey: orderKeys.detail(order.id) })}
+          />
+        </div>
+      )}
 
       <Card className="mt-6 p-6">
         <OrderProgress order={order} />
@@ -149,6 +192,9 @@ function OrderDetail({ order, justPlaced }: { order: Order; justPlaced: boolean 
               <dt className="text-navy-500">{PAYMENT_METHOD_LABELS[order.paymentMethod]}</dt>
               <dd className="font-medium">{PAYMENT_STATUS_LABELS[order.paymentStatus]}</dd>
             </div>
+            {paidByTransfer && order.vietQr?.paidAt && (
+              <p className="text-right text-xs text-navy-500">Nhận tiền lúc {formatDateTime(order.vietQr.paidAt)}</p>
+            )}
           </dl>
           {order.customerNote && <p className="mt-4 rounded-xl bg-gray-50 p-3 text-sm text-navy-600">Ghi chú của bạn: {order.customerNote}</p>}
         </Card>
@@ -190,7 +236,13 @@ function OrderDetail({ order, justPlaced }: { order: Order; justPlaced: boolean 
               <ol className="mt-2 list-decimal space-y-1 pl-4">
                 <li>Chờ trạng thái chuyển sang “Sẵn sàng để nhận”.</li>
                 <li>Đến {order.pickupLocation.name} và đọc mã đơn <strong className="font-mono text-white">{order.orderNumber}</strong>.</li>
-                <li>Thanh toán {formatCurrency(order.total)} bằng tiền mặt khi nhận.</li>
+                <li>
+                  {paidByTransfer
+                    ? 'Bạn đã thanh toán chuyển khoản, không cần trả thêm tiền.'
+                    : byTransfer
+                      ? `Chuyển khoản ${formatCurrency(order.total)} theo mã QR ở trên để quầy nhận đơn.`
+                      : `Thanh toán ${formatCurrency(order.total)} bằng tiền mặt khi nhận.`}
+                </li>
               </ol>
             </Card>
           )}

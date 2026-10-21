@@ -31,6 +31,10 @@ export interface StallProfileInput {
   closeTime?: string;
   imageUrl?: string | null;
   isAcceptingOrders?: boolean;
+  /** null = tắt nhận chuyển khoản */
+  bankAccount?: { bankBin: string; accountNo: string; accountName: string } | null;
+  /** Số phút chờ chuyển khoản (5–60) */
+  paymentTimeoutMinutes?: number;
 }
 
 const clean = (params: object) => Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined && v !== ''));
@@ -62,6 +66,9 @@ export const vendorService = {
 
   order: async (stallId: number, orderId: number) =>
     (await request(apiClient.get<ApiSuccess<{ order: VendorOrder }>>(`/vendor/stalls/${stallId}/orders/${orderId}`))).order,
+
+  confirmPayment: async (stallId: number, orderId: number) =>
+    (await request(apiClient.post<ApiSuccess<{ order: VendorOrder }>>(`/vendor/stalls/${stallId}/orders/${orderId}/confirm-payment`))).order,
 
   updateOrderStatus: async (stallId: number, orderId: number, status: OrderStatus, reason?: string) =>
     (await request(apiClient.patch<ApiSuccess<{ order: VendorOrder }>>(`/vendor/stalls/${stallId}/orders/${orderId}/status`, { status, reason }))).order,

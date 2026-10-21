@@ -1,5 +1,6 @@
 import type { FoodCategory, FoodStall, MenuItem, Prisma, ReviewStatus } from '@prisma/client';
 import { prisma } from '../../lib/prisma.js';
+import { hasBankAccount } from '../payments/payments.service.js';
 import { isWithinOpeningHours } from '../../utils/opening-hours.js';
 
 /**
@@ -49,6 +50,10 @@ export function toStallSummary(stall: FoodStall, rating?: StallRating, extra: { 
     closeTime: stall.closeTime,
     isAcceptingOrders: stall.isAcceptingOrders,
     ...stallOpenState(stall),
+    /** Quầy nhận thanh toán chuyển khoản VietQR (không lộ số tài khoản ra trang công khai) */
+    acceptsVietQr: hasBankAccount(stall),
+    /** Số phút được phép chuyển khoản trước khi đơn tự huỷ */
+    paymentTimeoutMinutes: stall.paymentTimeoutMinutes,
     rating: rating ?? { average: null, count: 0 },
     ...(extra.menuItemCount !== undefined && { menuItemCount: extra.menuItemCount }),
   };
