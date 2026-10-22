@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
-import app from '../src/server'; // Đường dẫn tới file Express app của bạn
+import { createApp } from '../src/quickbite/backend/src/app'; // Đường dẫn tới file Express app
+
+const app = createApp();
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
