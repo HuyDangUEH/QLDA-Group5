@@ -8,7 +8,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm --prefix src/quickbite/backend test",
+    "test:watch": "npm --prefix src/quickbite/backend run test:watch"
   },
   "repository": {
     "type": "git",
