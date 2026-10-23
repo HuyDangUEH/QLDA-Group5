@@ -3,8 +3,13 @@
  * và chặn chạy test trên database không phải database test.
  */
 import { config } from 'dotenv';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-config({ path: '.env.test', override: true, quiet: true });
+const backendDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repoRoot = resolve(backendDir, '../../..');
+
+config({ path: resolve(repoRoot, '.env.test'), override: true, quiet: true });
 process.env.NODE_ENV = 'test';
 
 const dbName = process.env.DATABASE_URL?.split('/').pop()?.split('?')[0] ?? '';

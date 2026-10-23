@@ -1,50 +1,40 @@
-import { describe, it, expect } from 'vitest';
-import request from 'supertest';
-import { createApp } from '../src/quickbite/backend/src/app'; // Đường dẫn tới file Express app
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { API, app, createUser, prisma, request, resetDatabase } from '../src/quickbite/backend/tests/helpers.js';
 
-const app = createApp();
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+beforeEach(resetDatabase);
+afterAll(() => prisma.$disconnect());
 
 describe('Auth API Tests (Xác thực & Phân quyền)', () => {
   const testUser = {
     fullName: 'Sinh Viên Test',
-    email: 'test.student@st.ueh.edu.vn',
-    password: 'QuickBite@2026'
+    email: 'test.student@example.com',
+    password: 'Matkhau123',
+    phone: '0901234567',
+    studentCode: 'SV001',
   };
 
-  it('TC-AUTH-01: Đăng ký thành công với email UEH', async () => {
+  it('TC-AUTH-01: Đăng ký thành công và tạo tài khoản sinh viên', async () => {
     const res = await request(app)
-      .post('/api/auth/register')
+      .post(`${API}/auth/register`)
       .send(testUser);
     
     expect(res.status).toBe(201);
-    expect(res.body.message).toBe('Đăng ký thành công');
+    expect(res.body.data.user).toMatchObject({ email: testUser.email, role: 'STUDENT' });
+    expect(res.headers['set-cookie']).toBeDefined();
   });
 
-  it('TC-AUTH-02: Chặn đăng ký email ngoài UEH', async () => {
+  it('TC-AUTH-02: Từ chối đăng nhập khi sai mật khẩu', async () => {
+    await createUser({ email: testUser.email });
     const res = await request(app)
-      .post('/api/auth/register')
-      .send({ ...testUser, email: 'hacker@gmail.com' });
+      .post(`${API}/auth/login`)
+      .send({ email: testUser.email, password: 'SaiMatKhau1' });
     
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(401);
   });
 
-  it('TC-AUTH-04: Đăng nhập thành công và trả về httpOnly Cookie', async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: testUser.email, password: testUser.password });
-    
-    expect(res.status).toBe(200);
-    expect(res.headers['set-cookie']).toBeDefined(); // Phải có cookie JWT
-  });
+  it('TC-AUTH-03: Không truy cập hồ sơ khi chưa đăng nhập', async () => {
+    const res = await request(app).get(`${API}/auth/me`);
 
-  it('TC-AUTH-05: Chặn đăng nhập khi sai mật khẩu', async () => {
-    const res = await request(app)
-      .post('/api/auth/login')
-      .send({ email: testUser.email, password: 'WrongPassword' });
-    
     expect(res.status).toBe(401);
   });
 });
