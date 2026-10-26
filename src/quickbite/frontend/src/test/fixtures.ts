@@ -6,6 +6,7 @@ export function makeMenuItem(overrides: Partial<MenuItem> = {}): MenuItem {
     name: 'Phở bò tái',
     description: 'Nước dùng thanh ngọt',
     price: '45000',
+    portion: null,
     imageUrl: null,
     isAvailable: true,
     isFeatured: false,

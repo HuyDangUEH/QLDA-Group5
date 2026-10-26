@@ -44,4 +44,22 @@ describe('FoodDetailContent', () => {
     renderDetail(<FoodDetailContent item={makeMenuItem()} />);
     expect(screen.getByRole('link', { name: /Phở & Mì Cô Ba/ })).toHaveAttribute('href', '/quan-an/pho-mi-co-ba');
   });
+
+  it('hiển thị định lượng khi quầy đã nhập; ẩn dòng định lượng khi chưa có', () => {
+    const { unmount } = renderDetail(<FoodDetailContent item={makeMenuItem({ portion: '1 tô · 650ml' })} onAddToCart={vi.fn()} />);
+    expect(screen.getByText('1 tô · 650ml')).toBeInTheDocument();
+    expect(screen.getByText(/Định lượng:/)).toBeInTheDocument();
+    unmount();
+    renderDetail(<FoodDetailContent item={makeMenuItem({ portion: null })} onAddToCart={vi.fn()} />);
+    expect(screen.queryByText(/Định lượng:/)).not.toBeInTheDocument();
+  });
+
+  it('dạng trang riêng: tên món là tiêu đề cấp 1; trong hộp thoại: cấp 3', () => {
+    const { unmount } = renderDetail(<FoodDetailContent item={makeMenuItem({ name: 'Phở bò tái' })} layout="page" onAddToCart={vi.fn()} />);
+    expect(screen.getByRole('heading', { level: 1, name: 'Phở bò tái' })).toBeInTheDocument();
+    unmount();
+    renderDetail(<FoodDetailContent item={makeMenuItem({ name: 'Phở bò tái' })} layout="dialog" onAddToCart={vi.fn()} />);
+    expect(screen.getByRole('heading', { level: 3, name: 'Phở bò tái' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+  });
 });

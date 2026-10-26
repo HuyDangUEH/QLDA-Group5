@@ -16,10 +16,10 @@ describe('FoodCard', () => {
     expect(screen.getByText(/Đã bán 12/)).toBeInTheDocument();
   });
 
-  it('món hết hàng có nhãn "Hết món" và được đọc rõ cho trình đọc màn hình', () => {
+  it('món hết hàng có nhãn "Tạm hết" và được đọc rõ cho trình đọc màn hình', () => {
     render(<FoodCard item={makeMenuItem({ isAvailable: false, canOrder: false })} onSelect={vi.fn()} />);
-    expect(screen.getByText('Hết món')).toBeInTheDocument();
-    expect(screen.getByRole('button')).toHaveAccessibleName(/hết món/);
+    expect(screen.getByText('Tạm hết')).toBeInTheDocument();
+    expect(screen.getByRole('button')).toHaveAccessibleName(/tạm hết/);
   });
 
   it('ẩn tên quầy khi hideStall', () => {
