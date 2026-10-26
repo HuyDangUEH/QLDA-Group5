@@ -83,6 +83,7 @@ export interface VendorMenuItem {
   name: string;
   description: string | null;
   price: Money;
+  portion: string | null;
   imageUrl: string | null;
   isAvailable: boolean;
   isActive: boolean;
@@ -95,6 +96,7 @@ export interface MenuItemInput {
   name: string;
   description: string | null;
   price: number;
+  portion: string | null;
   categoryId: number;
   imageUrl: string | null;
   isAvailable: boolean;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { MapPin, ShoppingBag, Store } from 'lucide-react';
+import { MapPin, Scale, ShoppingBag, Store } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ImageWithFallback } from '@/components/ui/ImageWithFallback';
 import { QuantitySelector } from '@/components/ui/QuantitySelector';
@@ -46,7 +46,12 @@ export function FoodDetailContent({ item, onAddToCart, adding, blockedReason, on
 
       <div className={cn(layout === 'dialog' && 'p-6')}>
         <p className="text-sm font-semibold text-brand-600">{item.category.name}</p>
-        <h3 className={cn('mt-1 font-extrabold', layout === 'dialog' ? 'text-2xl' : 'text-3xl')}>{item.name}</h3>
+        {/* Trang riêng: tên món là tiêu đề chính (h1); trong hộp thoại: tiêu đề phụ (h3) */}
+        {layout === 'page' ? (
+          <h1 className="mt-1 text-3xl font-extrabold">{item.name}</h1>
+        ) : (
+          <h3 className="mt-1 text-2xl font-extrabold">{item.name}</h3>
+        )}
 
         <Link
           to={`/quan-an/${item.stall.slug}`}
@@ -64,6 +69,11 @@ export function FoodDetailContent({ item, onAddToCart, adding, blockedReason, on
         {item.description && <p className="mt-4 leading-relaxed text-navy-600">{item.description}</p>}
 
         <p className="mt-4 text-2xl font-extrabold text-brand-600">{formatCurrency(item.price)}</p>
+        {item.portion && (
+          <p className="mt-1 flex items-center gap-1.5 text-sm text-navy-600">
+            <Scale className="size-4" aria-hidden /> Định lượng: <span className="font-semibold">{item.portion}</span>
+          </p>
+        )}
 
         {reason ? (
           <p role="status" className="mt-5 rounded-xl bg-amber-50 p-3 text-sm font-medium text-amber-800">

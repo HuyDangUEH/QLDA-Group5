@@ -1,0 +1,33 @@
+{
+  "name": "qlda-group5",
+  "version": "1.0.0",
+  "description": "> Dự án đồ án môn học: **Quản lý dự án Công nghệ thông tin (26C1INF50901603)**  \r > Giảng viên hướng dẫn: **TS. Nguyễn Mạnh Tuấn**  \r > Nhóm thực hiện: **Nhóm 5** | Quản lý kiểm soát: **PCG (Nguyễn Đinh Thảo Nhi)**",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "npm --prefix src/quickbite/backend test",
+    "test:watch": "npm --prefix src/quickbite/backend run test:watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lnktrinh92-boom/QLDA-Group5.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/lnktrinh92-boom/QLDA-Group5/issues"
+  },
+  "homepage": "https://github.com/lnktrinh92-boom/QLDA-Group5#readme",
+  "devDependencies": {
+    "@prisma/client": "^7.10.1",
+    "@types/supertest": "^7.2.1",
+    "dotenv": "^18.0.8",
+    "supertest": "^7.3.1",
+    "vitest": "^5.0.5"
+  }
+}

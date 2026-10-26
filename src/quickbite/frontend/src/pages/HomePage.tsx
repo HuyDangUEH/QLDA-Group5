@@ -25,7 +25,7 @@ const HERO_IMAGES = [
 const STEPS = [
   { icon: Sparkles, title: 'Chọn món', text: 'Xem thực đơn các quầy trong trường, lọc theo giá và danh mục.' },
   { icon: ShoppingBag, title: 'Đặt & chọn giờ nhận', text: 'Chọn điểm nhận gần lớp học và thời gian phù hợp.' },
-  { icon: MapPin, title: 'Nhận món, trả tiền', text: 'Đến điểm nhận khi món sẵn sàng. Thanh toán tiền mặt khi nhận.' },
+  { icon: MapPin, title: 'Nhận món, trả tiền', text: 'Đến điểm nhận khi món sẵn sàng. Trả tiền mặt khi nhận hoặc chuyển khoản bằng mã QR.' },
 ];
 
 export function HomePage() {

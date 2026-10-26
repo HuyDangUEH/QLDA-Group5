@@ -76,6 +76,7 @@ flowchart LR
 |---|---|
 | [docs/api.md](docs/api.md) | Quy ước API, mã lỗi, danh sách endpoint · **Swagger UI: http://localhost:4000/api/docs** |
 | [docs/database.md](docs/database.md) | Sơ đồ ER (Mermaid), quyết định thiết kế, hành vi khi xoá |
+| [docs/payments.md](docs/payments.md) | Thanh toán chuyển khoản VietQR, webhook SePay, giả lập webhook khi phát triển |
 | [docs/business-rules.md](docs/business-rules.md) | Máy trạng thái đơn, thanh toán, huỷ / từ chối / hoàn tiền, giờ nhận, giỏ hàng, quyền trong quầy, kiểm duyệt đánh giá |
 | [docs/security.md](docs/security.md) | Biện pháp bảo mật, kết quả rà soát, giới hạn đã biết |
 | [docs/deployment.md](docs/deployment.md) | Triển khai production (nginx, PM2, biến môi trường) |
@@ -220,6 +221,7 @@ Nếu máy đã có MySQL ở cổng 3306, đổi `ports` trong `docker-compose.
 | `TRUST_PROXY` | `0` | Số reverse proxy phía trước (`1` khi có nginx) |
 | `IMAGE_HOSTS` | `images.unsplash.com` | Tên miền ảnh ngoài (https) được phép, ngoài ảnh có sẵn `/images/...` và ảnh tải lên `/uploads/...` |
 | `API_DOCS` | tự động | `true` / `false` để ép bật / tắt Swagger (mặc định tắt ở production) |
+| `SEPAY_WEBHOOK_API_KEY` | — (tắt) | API key nhận webhook SePay để tự xác nhận chuyển khoản. Bỏ trống = chủ quầy tự bấm "Đã nhận tiền". Xem [docs/payments.md](docs/payments.md) |
 
 `backend/.env.test` dùng cho bộ test (xem [.env.test.example](backend/.env.test.example)); tên database **bắt buộc kết thúc bằng `_test`**.
 

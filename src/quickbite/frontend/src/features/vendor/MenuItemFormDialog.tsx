@@ -18,6 +18,7 @@ import { ImageUploader } from './ImageUploader';
 const schema = z.object({
   name: z.string().trim().min(2, 'Tên món phải có ít nhất 2 ký tự').max(150, 'Tên món tối đa 150 ký tự'),
   description: z.string().max(2000, 'Mô tả tối đa 2000 ký tự'),
+  portion: z.string().trim().max(60, 'Định lượng tối đa 60 ký tự'),
   price: z
     .string()
     .trim()
@@ -65,6 +66,7 @@ function MenuItemForm({ stallId, item, onDone }: { stallId: number; item: Vendor
     defaultValues: {
       name: item?.name ?? '',
       description: item?.description ?? '',
+      portion: item?.portion ?? '',
       price: item ? String(Number(item.price)) : '',
       categoryId: item ? String(item.categoryId) : '',
       imageUrl: item?.imageUrl ?? null,
@@ -78,6 +80,7 @@ function MenuItemForm({ stallId, item, onDone }: { stallId: number; item: Vendor
       const input = {
         name: values.name.trim(),
         description: values.description.trim() || null,
+        portion: values.portion.trim() || null,
         price: Number(values.price.replace(/[.,\s]/g, '')),
         categoryId: Number(values.categoryId),
         imageUrl: values.imageUrl,
@@ -93,13 +96,21 @@ function MenuItemForm({ stallId, item, onDone }: { stallId: number; item: Vendor
       toast.success(item ? `Đã lưu "${saved.name}"` : `Đã thêm "${saved.name}" vào thực đơn`);
       onDone();
     },
-    onError: (e) => applyServerErrors(e, setError, ['name', 'description', 'price', 'categoryId', 'imageUrl']),
+    onError: (e) => applyServerErrors(e, setError, ['name', 'description', 'portion', 'price', 'categoryId', 'imageUrl']),
   });
 
   return (
     <form onSubmit={handleSubmit((v) => save.mutate(v))} noValidate className="grid gap-6 p-6 pt-4 md:grid-cols-[1fr_240px]">
       <div className="space-y-4">
         <FormField label="Tên món" required error={errors.name?.message} {...register('name')} />
+        <FormField
+          label="Định lượng"
+          placeholder="Vd: 1 tô · 450g, 6 viên, Ly 500ml"
+          hint="Không bắt buộc — giúp sinh viên biết phần ăn lớn hay nhỏ"
+          maxLength={60}
+          error={errors.portion?.message}
+          {...register('portion')}
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label="Giá (VND)" required inputMode="numeric" placeholder="35000" error={errors.price?.message} {...register('price')} />
           <div>

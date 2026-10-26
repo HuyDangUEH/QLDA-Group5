@@ -19,7 +19,7 @@ export function FoodCard({ item, onSelect, hideStall }: FoodCardProps) {
       type="button"
       onClick={() => onSelect(item)}
       className="group flex h-full w-full flex-col overflow-hidden rounded-(--radius-card) border border-gray-100 bg-white text-left shadow-(--shadow-card) transition hover:-translate-y-0.5 hover:shadow-(--shadow-card-hover)"
-      aria-label={`${item.name}, ${formatCurrency(item.price)}${unavailable ? ', hết món' : ''}`}
+      aria-label={`${item.name}, ${formatCurrency(item.price)}${unavailable ? ', tạm hết' : ''}`}
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <ImageWithFallback
@@ -28,7 +28,7 @@ export function FoodCard({ item, onSelect, hideStall }: FoodCardProps) {
           className={cn('size-full object-cover transition duration-300 group-hover:scale-105', unavailable && 'grayscale')}
         />
         {unavailable ? (
-          <span className="absolute top-3 left-3 rounded-full bg-navy-900/85 px-2.5 py-1 text-xs font-semibold text-white">Hết món</span>
+          <span className="absolute top-3 left-3 rounded-full bg-navy-900/85 px-2.5 py-1 text-xs font-semibold text-white">Tạm hết</span>
         ) : (
           item.soldCount >= 5 && (
             <span className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-brand-600 shadow-sm">
