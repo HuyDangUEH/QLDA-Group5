@@ -45,6 +45,8 @@ const price = z.coerce
 export const createMenuItemSchema = z.object({
   name: z.string({ error: 'Vui lòng nhập tên món' }).trim().min(2, 'Tên món phải có ít nhất 2 ký tự').max(150, 'Tên món tối đa 150 ký tự'),
   description: optionalText(2000, 'Mô tả'),
+  /** Định lượng một phần, vd "1 tô · 450g", "6 viên" */
+  portion: optionalText(60, 'Định lượng'),
   price,
   categoryId: z.coerce.number({ error: 'Vui lòng chọn danh mục' }).int().positive('Vui lòng chọn danh mục'),
   imageUrl: imageUrlSchema.or(z.literal('').transform(() => null)).nullish(),

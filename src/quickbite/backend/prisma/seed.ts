@@ -216,6 +216,18 @@ async function main() {
     },
   ];
 
+  /** Định lượng mỗi phần (hiển thị ở trang chi tiết món) */
+  const PORTIONS: Record<string, string> = {
+    'Cơm chiên Dương Châu': '1 dĩa · 400g', 'Cơm chiên hải sản': '1 dĩa · 450g', 'Cơm gà bowl sốt mè': '1 tô · 450g',
+    'Cà ri tôm cơm trắng': '1 phần · 450g', 'Thịt nướng xiên (5 xiên)': '5 xiên', 'Thịt viên sốt cà': '1 phần · 8 viên',
+    'Phở bò tái': '1 tô · 650ml', 'Mì trứng hải sản': '1 tô · 650ml', 'Mì xào bò': '1 dĩa · 400g', 'Mì xào rau củ': '1 dĩa · 400g',
+    'Sủi cảo (8 viên)': '8 viên', 'Há cảo hấp (6 viên)': '6 viên', 'Burger bò phô mai': '1 cái + khoai tây chiên',
+    'Pizza gà nướng (miếng lớn)': '1 miếng lớn', 'Bánh mì ốp la sốt bơ': '1 ổ · 2 trứng', 'Pancake mật ong': '3 bánh',
+    'Donut sô-cô-la': '1 cái', 'Trà sữa trân châu đường đen': 'Ly 500ml', 'Bạc xỉu': 'Ly 400ml', 'Cà phê latte': 'Ly 350ml',
+    'Trà gừng mật ong': 'Ly 350ml', 'Sinh tố sô-cô-la kem tươi': 'Ly 500ml', 'Salad rau củ hạt dinh dưỡng': '1 tô · 350g',
+    'Salad trộn dầu giấm': '1 tô · 300g', 'Mâm chay thập cẩm': '1 mâm (cơm + 3 món + canh)',
+  };
+
   const stalls: { id: number; ownerId: number; menu: { id: number; name: string; price: number; isAvailable: boolean }[] }[] = [];
 
   for (const s of stallsData) {
@@ -245,6 +257,7 @@ async function main() {
           name: item.name,
           description: item.description,
           price: new Prisma.Decimal(item.price),
+          portion: PORTIONS[item.name] ?? null,
           imageUrl: img(item.image),
           isFeatured: item.featured ?? false,
           isAvailable: item.available ?? true,

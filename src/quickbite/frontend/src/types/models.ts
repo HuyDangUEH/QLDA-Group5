@@ -59,6 +59,8 @@ export interface MenuItem {
   name: string;
   description: string | null;
   price: Money;
+  /** Định lượng một phần, vd "1 tô · 450g" (null nếu quầy chưa nhập) */
+  portion: string | null;
   imageUrl: string | null;
   isAvailable: boolean;
   isFeatured: boolean;

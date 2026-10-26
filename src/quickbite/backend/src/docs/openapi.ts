@@ -179,6 +179,7 @@ export const openApiSpec = {
           name: { type: 'string' },
           description: { type: ['string', 'null'] },
           price: money,
+          portion: { type: ['string', 'null'], description: 'Định lượng một phần, vd "1 tô · 450g"' },
           imageUrl: { type: ['string', 'null'] },
           isAvailable: { type: 'boolean' },
           soldCount: { type: 'integer' },

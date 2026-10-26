@@ -71,6 +71,8 @@ export function toMenuItem(item: MenuItemWithRelations) {
     name: item.name,
     description: item.description,
     price: item.price,
+    /** Định lượng một phần (null nếu quầy chưa nhập) */
+    portion: item.portion,
     imageUrl: item.imageUrl,
     isAvailable: item.isAvailable,
     isFeatured: item.isFeatured,
