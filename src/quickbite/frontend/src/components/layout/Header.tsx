@@ -14,7 +14,7 @@ import {
   UtensilsCrossed,
   X,
 } from 'lucide-react';
-import { useCart } from '@/features/cart/hooks';
+import { MiniCart } from '@/features/cart/MiniCart';
 import { useUnreadCount } from '@/features/notifications/hooks';
 import { toast } from 'sonner';
 import { Logo } from './Logo';
@@ -71,8 +71,9 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Giỏ hàng: hiện cho khách và sinh viên, không hiện cho chủ quầy / admin */}
-          {!isPending && (!user || user.role === 'STUDENT') && <CartButton />}
+          {/* Giỏ hàng: sinh viên có mini cart xem nhanh; khách bấm vào sẽ được mời đăng nhập; chủ quầy / admin không có */}
+          {!isPending && !user && <CartButton />}
+          {user?.role === 'STUDENT' && <MiniCart />}
           {isPending ? (
             <div className="h-9 w-24 animate-pulse rounded-xl bg-gray-100" aria-hidden />
           ) : user ? (
@@ -148,21 +149,15 @@ function NotificationBell() {
   );
 }
 
+/** Khách chưa đăng nhập: giỏ hàng luôn trống, bấm vào trang giỏ sẽ được mời đăng nhập */
 function CartButton() {
-  const { data: cart } = useCart();
-  const count = cart?.itemCount ?? 0;
   return (
     <Link
       to="/gio-hang"
       className="relative inline-flex size-10 items-center justify-center rounded-xl text-navy-700 hover:bg-gray-100"
-      aria-label={count > 0 ? `Giỏ hàng, ${count} món` : 'Giỏ hàng'}
+      aria-label="Giỏ hàng"
     >
       <ShoppingBag className="size-5" aria-hidden />
-      {count > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1 text-[11px] font-bold text-white ring-2 ring-white" aria-hidden>
-          {count > 99 ? '99+' : count}
-        </span>
-      )}
     </Link>
   );
 }
