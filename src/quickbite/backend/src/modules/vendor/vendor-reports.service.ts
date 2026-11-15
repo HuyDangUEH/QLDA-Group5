@@ -18,6 +18,17 @@ export const reportQuery = z
 
 const money = (v: Prisma.Decimal | number | string | null | undefined) => new Prisma.Decimal(v ?? 0).toFixed(0);
 
+/** Ca làm việc trong ngày (giờ Việt Nam). Giờ kết thúc không tính vào ca; ngoài các ca → "Ngoài giờ" */
+export const SHIFTS = [
+  { key: 'morning', label: 'Ca sáng', start: 6, end: 11 },
+  { key: 'noon', label: 'Ca trưa', start: 11, end: 14 },
+  { key: 'afternoon', label: 'Ca chiều', start: 14, end: 18 },
+  { key: 'evening', label: 'Ca tối', start: 18, end: 22 },
+] as const;
+
+const hh = (h: number) => `${String(h).padStart(2, '0')}:00`;
+const shiftOf = (hour: number) => SHIFTS.find((s) => hour >= s.start && hour < s.end)?.key ?? 'other';
+
 /** Món bán chạy (đơn đã hoàn thành) trong khoảng thời gian */
 async function topItems(stallId: number, from: Date, to: Date, limit: number) {
   const rows = await prisma.$queryRaw<{ menuItemId: number; name: string; quantity: bigint | number; revenue: Prisma.Decimal | string }[]>`
@@ -75,7 +86,7 @@ export const vendorReportsService = {
     const from = vnDayStart(range.from);
     const to = vnDayEnd(range.to);
 
-    const [daily, byStatus, top] = await Promise.all([
+    const [daily, byStatus, top, hourly] = await Promise.all([
       prisma.$queryRaw<{ day: string; orders: bigint | number; completed: bigint | number; revenue: Prisma.Decimal | string | null }[]>`
         SELECT DATE_FORMAT(CONVERT_TZ(createdAt, '+00:00', '+07:00'), '%Y-%m-%d') AS day,
                COUNT(*) AS orders,
@@ -87,7 +98,29 @@ export const vendorReportsService = {
         ORDER BY day`,
       prisma.order.groupBy({ by: ['status'], where: { stallId, createdAt: { gte: from, lt: to } }, _count: { _all: true } }),
       topItems(stallId, from, to, 10),
+      prisma.$queryRaw<{ hour: bigint | number; orders: bigint | number; completed: bigint | number; revenue: Prisma.Decimal | string | null }[]>`
+        SELECT HOUR(CONVERT_TZ(createdAt, '+00:00', '+07:00')) AS hour,
+               COUNT(*) AS orders,
+               SUM(status = 'COMPLETED') AS completed,
+               SUM(CASE WHEN status = 'COMPLETED' THEN total ELSE 0 END) AS revenue
+        FROM orders
+        WHERE stallId = ${stallId} AND createdAt >= ${from} AND createdAt < ${to}
+        GROUP BY hour`,
     ]);
+
+    // Gộp theo giờ đặt đơn → theo ca; luôn trả đủ 4 ca (kể cả ca không có đơn), "Ngoài giờ" chỉ khi có đơn
+    const shiftTotals = new Map<string, { orders: number; completed: number; revenue: Prisma.Decimal }>();
+    for (const h of hourly) {
+      const key = shiftOf(Number(h.hour));
+      const cur = shiftTotals.get(key) ?? { orders: 0, completed: 0, revenue: new Prisma.Decimal(0) };
+      shiftTotals.set(key, { orders: cur.orders + Number(h.orders), completed: cur.completed + Number(h.completed), revenue: cur.revenue.add(h.revenue ?? 0) });
+    }
+    const shiftRow = (key: string, label: string, start: string, end: string) => {
+      const t = shiftTotals.get(key);
+      return { key, label, start, end, orders: t?.orders ?? 0, completed: t?.completed ?? 0, revenue: money(t?.revenue) };
+    };
+    const shifts = SHIFTS.map((s) => shiftRow(s.key, s.label, hh(s.start), hh(s.end)));
+    if (shiftTotals.has('other')) shifts.push(shiftRow('other', 'Ngoài giờ', hh(SHIFTS.at(-1)!.end), hh(SHIFTS[0].start)));
 
     // Điền 0 cho những ngày không có đơn để biểu đồ liên tục
     const byDay = new Map(daily.map((d) => [d.day, d]));
@@ -111,6 +144,7 @@ export const vendorReportsService = {
       },
       statusCounts,
       series,
+      shifts,
       topItems: top,
     };
   },

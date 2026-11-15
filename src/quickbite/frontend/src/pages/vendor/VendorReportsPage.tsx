@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState, ErrorState } from '@/components/ui/States';
 import { inputClass } from '@/components/ui/styles';
+import { ShiftRevenue } from '@/features/vendor/ShiftRevenue';
 import { StatCard } from '@/features/vendor/StatCard';
 import { useCurrentStallId } from '@/features/vendor/vendor-stall-context';
 import { vendorKeys, vendorService } from '@/services/vendor.service';
@@ -173,6 +174,8 @@ export function VendorReportsPage() {
               </div>
             )}
           </Card>
+
+          {data.totals.orders > 0 && <ShiftRevenue shifts={data.shifts} />}
 
           <Card className="p-5">
             <h2 className="font-bold">Món bán chạy</h2>

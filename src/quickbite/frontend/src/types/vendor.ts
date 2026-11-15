@@ -108,7 +108,20 @@ export interface SalesReport {
   totals: { orders: number; completed: number; cancelled: number; revenue: Money; averageOrderValue: Money };
   statusCounts: Partial<Record<OrderStatus, number>>;
   series: { date: string; orders: number; completed: number; revenue: Money }[];
+  /** Doanh thu theo ca trong ngày (giờ Việt Nam); "other" = đặt ngoài các ca, chỉ có khi có đơn */
+  shifts: ShiftRevenue[];
   topItems: TopItem[];
+}
+
+export interface ShiftRevenue {
+  key: 'morning' | 'noon' | 'afternoon' | 'evening' | 'other';
+  label: string;
+  /** Giờ bắt đầu / kết thúc ca, vd "06:00" */
+  start: string;
+  end: string;
+  orders: number;
+  completed: number;
+  revenue: Money;
 }
 
 export interface AppNotification {
