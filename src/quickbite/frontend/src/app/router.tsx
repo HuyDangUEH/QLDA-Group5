@@ -23,6 +23,7 @@ const VendorOrdersPage = page(() => import('@/pages/vendor/VendorOrdersPage'), '
 const VendorMenuPage = page(() => import('@/pages/vendor/VendorMenuPage'), 'VendorMenuPage');
 const VendorReportsPage = page(() => import('@/pages/vendor/VendorReportsPage'), 'VendorReportsPage');
 const VendorStallSettingsPage = page(() => import('@/pages/vendor/VendorStallSettingsPage'), 'VendorStallSettingsPage');
+const VendorNotificationsPage = page(() => import('@/pages/vendor/VendorNotificationsPage'), 'VendorNotificationsPage');
 const NotificationsPage = page(() => import('@/pages/NotificationsPage'), 'NotificationsPage');
 const AdminLayout = page(() => import('@/components/layout/AdminLayout'), 'AdminLayout');
 const AdminDashboardPage = page(() => import('@/pages/admin/AdminDashboardPage'), 'AdminDashboardPage');
@@ -67,6 +68,7 @@ export const routes = [
           { path: 'thuc-don', element: <VendorMenuPage /> },
           { path: 'bao-cao', element: <VendorReportsPage /> },
           { path: 'thong-tin-quay', element: <VendorStallSettingsPage /> },
+          { path: 'thong-bao', element: <VendorNotificationsPage /> },
         ],
       },
       {

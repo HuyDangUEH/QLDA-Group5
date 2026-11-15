@@ -11,11 +11,15 @@ export const notificationsRouter = Router();
 
 notificationsRouter.use(authenticate);
 
-const listQuery = paginationSchema.extend({ unread: z.enum(['true', 'false']).optional() });
+/** Lọc theo quầy (trang thông báo của chủ quầy): chỉ thông báo gắn với đơn của quầy đó */
+const stallFilter = z.object({ stallId: z.coerce.number().int().positive('Mã quầy không hợp lệ').optional() });
+const listQuery = paginationSchema.extend({ unread: z.enum(['true', 'false']).optional() }).merge(stallFilter);
+
+const scopeOf = (userId: number, stallId?: number) => ({ userId, ...(stallId !== undefined && { order: { stallId } }) });
 
 notificationsRouter.get('/', async (req, res) => {
   const query = listQuery.parse(req.query);
-  const where = { userId: currentUser(req).id, ...(query.unread === 'true' && { isRead: false }) };
+  const where = { ...scopeOf(currentUser(req).id, query.stallId), ...(query.unread === 'true' && { isRead: false }) };
   const [items, total] = await Promise.all([
     prisma.notification.findMany({
       where,
@@ -29,7 +33,8 @@ notificationsRouter.get('/', async (req, res) => {
 });
 
 notificationsRouter.get('/unread-count', async (req, res) => {
-  const count = await prisma.notification.count({ where: { userId: currentUser(req).id, isRead: false } });
+  const { stallId } = stallFilter.parse(req.query);
+  const count = await prisma.notification.count({ where: { ...scopeOf(currentUser(req).id, stallId), isRead: false } });
   sendSuccess(res, { count });
 });
 
@@ -41,6 +46,7 @@ notificationsRouter.patch('/:id/read', async (req, res) => {
 });
 
 notificationsRouter.post('/read-all', async (req, res) => {
-  const { count } = await prisma.notification.updateMany({ where: { userId: currentUser(req).id, isRead: false }, data: { isRead: true } });
+  const { stallId } = stallFilter.parse(req.query);
+  const { count } = await prisma.notification.updateMany({ where: { ...scopeOf(currentUser(req).id, stallId), isRead: false }, data: { isRead: true } });
   sendSuccess(res, { updated: count });
 });

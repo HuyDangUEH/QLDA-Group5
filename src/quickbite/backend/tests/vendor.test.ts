@@ -3,7 +3,7 @@ import path from 'node:path';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { Prisma } from '@prisma/client';
 import { API, app, createStall, createUser, loginAs, prisma, request, resetDatabase } from './helpers.js';
-import { vnToday } from '../src/utils/dates.js';
+import { vnDayStart, vnToday } from '../src/utils/dates.js';
 
 beforeEach(resetDatabase);
 afterAll(() => prisma.$disconnect());
@@ -269,6 +269,41 @@ describe('Tổng quan & báo cáo', () => {
 
     expect((await ownerAgent.get(`${base}/reports?from=2026-02-01&to=2026-01-01`)).status).toBe(400);
   });
+
+  it('báo cáo theo ca: chia đơn theo giờ đặt (giờ Việt Nam), chỉ đơn hoàn thành tính doanh thu', async () => {
+    const { ownerAgent, base, placeOrder } = await setup();
+    const complete = async (id: number) => {
+      for (const status of ['ACCEPTED', 'PREPARING', 'READY_FOR_PICKUP', 'COMPLETED']) {
+        await ownerAgent.patch(`${base}/orders/${id}/status`).send({ status });
+      }
+    };
+    // Giờ đặt đơn theo giờ Việt Nam hôm nay: 07:30 (sáng), 12:15 (trưa), 12:45 (trưa, bị từ chối), 19:00 (tối), 23:10 (ngoài giờ)
+    const at = (hour: number, minute: number) => new Date(vnDayStart(vnToday()).getTime() + (hour * 60 + minute) * 60_000);
+    const plan: [number, number, number, boolean][] = [
+      [1, 7, 30, true],
+      [2, 12, 15, true],
+      [1, 12, 45, false],
+      [3, 19, 0, true],
+      [1, 23, 10, true],
+    ];
+    for (const [qty, h, m, done] of plan) {
+      const id = await placeOrder(qty);
+      if (done) await complete(id);
+      else await ownerAgent.patch(`${base}/orders/${id}/status`).send({ status: 'REJECTED', reason: 'Hết món' });
+      await prisma.order.update({ where: { id }, data: { createdAt: at(h, m) } });
+    }
+
+    const res = await ownerAgent.get(`${base}/reports`);
+    expect(res.body.data.shifts).toEqual([
+      { key: 'morning', label: 'Ca sáng', start: '06:00', end: '11:00', orders: 1, completed: 1, revenue: '35000' },
+      { key: 'noon', label: 'Ca trưa', start: '11:00', end: '14:00', orders: 2, completed: 1, revenue: '70000' },
+      { key: 'afternoon', label: 'Ca chiều', start: '14:00', end: '18:00', orders: 0, completed: 0, revenue: '0' },
+      { key: 'evening', label: 'Ca tối', start: '18:00', end: '22:00', orders: 1, completed: 1, revenue: '105000' },
+      { key: 'other', label: 'Ngoài giờ', start: '22:00', end: '06:00', orders: 1, completed: 1, revenue: '35000' },
+    ]);
+    // Tổng các ca khớp tổng doanh thu
+    expect(res.body.data.totals.revenue).toBe('245000');
+  });
 });
 
 describe('Thông báo', () => {
@@ -289,5 +324,26 @@ describe('Thông báo', () => {
     expect((await studentAgent.patch(`${API}/notifications/${id}/read`)).status).toBe(200);
     expect((await studentAgent.get(`${API}/notifications/unread-count`)).body.data.count).toBe(0);
     expect((await ownerAgent.post(`${API}/notifications/read-all`)).body.data.updated).toBe(1);
+  });
+
+  it('chủ quầy lọc thông báo theo quầy (stallId): danh sách, đếm chưa đọc, đánh dấu đã đọc chỉ trong quầy đó', async () => {
+    const { ownerAgent, placeOrder, owner, stall, otherStall } = await setup();
+    await placeOrder();
+    // Thông báo hệ thống (không gắn đơn) → không thuộc quầy nào
+    await prisma.notification.create({ data: { userId: owner.id, type: 'SYSTEM', title: 'Bảo trì hệ thống', message: 'Tối nay 22h' } });
+
+    expect((await ownerAgent.get(`${API}/notifications/unread-count`)).body.data.count).toBe(2);
+    expect((await ownerAgent.get(`${API}/notifications/unread-count?stallId=${stall.id}`)).body.data.count).toBe(1);
+    expect((await ownerAgent.get(`${API}/notifications/unread-count?stallId=${otherStall.id}`)).body.data.count).toBe(0);
+
+    const list = await ownerAgent.get(`${API}/notifications?stallId=${stall.id}`);
+    expect(list.body.data).toHaveLength(1);
+    expect(list.body.data[0].order.stallId).toBe(stall.id);
+    expect(list.body.meta.total).toBe(1);
+
+    expect((await ownerAgent.post(`${API}/notifications/read-all?stallId=${stall.id}`)).body.data.updated).toBe(1);
+    // Thông báo hệ thống vẫn chưa đọc
+    expect((await ownerAgent.get(`${API}/notifications/unread-count`)).body.data.count).toBe(1);
+    expect((await ownerAgent.get(`${API}/notifications?stallId=abc`)).status).toBe(400);
   });
 });
