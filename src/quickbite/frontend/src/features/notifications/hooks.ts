@@ -4,12 +4,12 @@ import { notificationKeys, notificationsService } from '@/services/notifications
 import type { Role } from '@/features/auth/types';
 import type { AppNotification } from '@/types/vendor';
 
-/** Số thông báo chưa đọc, làm mới mỗi 30 giây */
-export function useUnreadCount() {
+/** Số thông báo chưa đọc (của mọi quầy, hoặc chỉ một quầy), làm mới mỗi 30 giây */
+export function useUnreadCount(stallId?: number) {
   const { data: user } = useCurrentUser();
   return useQuery({
-    queryKey: notificationKeys.unread,
-    queryFn: notificationsService.unreadCount,
+    queryKey: stallId ? notificationKeys.unreadForStall(stallId) : notificationKeys.unread,
+    queryFn: () => notificationsService.unreadCount(stallId),
     enabled: !!user,
     refetchInterval: 30_000,
   });
@@ -26,7 +26,7 @@ export function useMarkRead() {
 export function useMarkAllRead() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: notificationsService.markAllRead,
+    mutationFn: (stallId?: number) => notificationsService.markAllRead(stallId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: notificationKeys.all }),
   });
 }

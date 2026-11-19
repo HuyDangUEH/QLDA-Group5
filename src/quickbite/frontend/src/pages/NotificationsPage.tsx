@@ -8,11 +8,12 @@ import { Pagination } from '@/components/ui/Pagination';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { EmptyState, ErrorState } from '@/components/ui/States';
 import { useCurrentUser } from '@/features/auth/hooks';
+import { NotificationList } from '@/features/notifications/NotificationList';
 import { notificationLink, useMarkAllRead, useMarkRead } from '@/features/notifications/hooks';
 import { toApiError } from '@/lib/api-client';
 import { notificationKeys, notificationsService } from '@/services/notifications.service';
 import type { AppNotification } from '@/types/vendor';
-import { cn, formatDateTime } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export function NotificationsPage() {
   const { data: user } = useCurrentUser();
@@ -90,27 +91,7 @@ export function NotificationsPage() {
           <EmptyState icon={<Bell className="size-7" aria-hidden />} title={unreadOnly ? 'Không có thông báo chưa đọc' : 'Chưa có thông báo nào'} />
         ) : (
           <>
-            <ul className="divide-y divide-gray-100 overflow-hidden rounded-(--radius-card) border border-gray-100 bg-white shadow-(--shadow-card)">
-              {data.items.map((n) => (
-                <li key={n.id}>
-                  <button
-                    type="button"
-                    onClick={() => open(n)}
-                    className={cn('flex w-full gap-3 p-4 text-left transition hover:bg-gray-50', !n.isRead && 'bg-brand-50/50')}
-                  >
-                    <span className={cn('mt-1.5 size-2.5 shrink-0 rounded-full', n.isRead ? 'bg-transparent' : 'bg-brand-500')} aria-hidden />
-                    <span className="min-w-0 flex-1">
-                      <span className={cn('block', !n.isRead && 'font-bold')}>
-                        {n.title}
-                        {!n.isRead && <span className="sr-only"> (chưa đọc)</span>}
-                      </span>
-                      <span className="mt-0.5 block text-sm text-navy-600">{n.message}</span>
-                      <span className="mt-1 block text-xs text-navy-400">{formatDateTime(n.createdAt)}</span>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <NotificationList items={data.items} onOpen={open} />
             {data.meta.totalPages > 1 && (
               <div className="mt-6">
                 <Pagination meta={data.meta} onPageChange={setPage} />
