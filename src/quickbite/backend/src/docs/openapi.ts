@@ -55,6 +55,8 @@ const COMMON_ERRORS = {
 const path = (name: string, description: string, schema: Json = { type: 'integer', minimum: 1 }) => ({ name, in: 'path', required: true, description, schema });
 const query = (name: string, description: string, schema: Json = { type: 'string' }) => ({ name, in: 'query', required: false, description, schema });
 const pageParams = [query('page', 'Trang (bắt đầu từ 1)', { type: 'integer', minimum: 1, default: 1 }), query('pageSize', 'Số dòng mỗi trang', { type: 'integer', minimum: 1 })];
+/** Chủ quầy: chỉ thông báo gắn với đơn của quầy này */
+const stallQuery = query('stallId', 'Chỉ thông báo về đơn của quầy này (trang thông báo chủ quầy)', { type: 'integer', minimum: 1 });
 const dateParams = [query('from', 'Từ ngày (YYYY-MM-DD, giờ Việt Nam)', { type: 'string', format: 'date' }), query('to', 'Đến ngày (YYYY-MM-DD)', { type: 'string', format: 'date' })];
 
 interface OpInput {
@@ -291,10 +293,10 @@ export const openApiSpec = {
     '/users/me/password': { patch: op({ tag: 'Xác thực & tài khoản', summary: 'Đổi mật khẩu (đăng xuất các thiết bị khác)', body: changePasswordSchema }) },
 
     // ─────────── Thông báo ───────────
-    '/notifications': { get: op({ tag: 'Thông báo', summary: 'Thông báo của tôi', params: [query('unread', 'Chỉ chưa đọc', { type: 'string', enum: ['true', 'false'] }), ...pageParams], response: paged({ type: 'object' }) }) },
-    '/notifications/unread-count': { get: op({ tag: 'Thông báo', summary: 'Số thông báo chưa đọc' }) },
+    '/notifications': { get: op({ tag: 'Thông báo', summary: 'Thông báo của tôi', params: [query('unread', 'Chỉ chưa đọc', { type: 'string', enum: ['true', 'false'] }), stallQuery, ...pageParams], response: paged({ type: 'object' }) }) },
+    '/notifications/unread-count': { get: op({ tag: 'Thông báo', summary: 'Số thông báo chưa đọc', params: [stallQuery] }) },
     '/notifications/{id}/read': { patch: op({ tag: 'Thông báo', summary: 'Đánh dấu đã đọc', params: [path('id', 'ID thông báo')] }) },
-    '/notifications/read-all': { post: op({ tag: 'Thông báo', summary: 'Đánh dấu tất cả đã đọc' }) },
+    '/notifications/read-all': { post: op({ tag: 'Thông báo', summary: 'Đánh dấu tất cả đã đọc', params: [stallQuery] }) },
 
     // ─────────── Giỏ hàng ───────────
     '/cart': {
@@ -356,7 +358,7 @@ export const openApiSpec = {
       patch: op({ tag: 'Chủ quầy', summary: 'Bật / tắt nhận đơn', params: [path('stallId', 'ID quầy')], body: { type: 'object', required: ['isAcceptingOrders'], properties: { isAcceptingOrders: { type: 'boolean' } } } }),
     },
     '/vendor/stalls/{stallId}/dashboard': { get: op({ tag: 'Chủ quầy', summary: 'Số liệu hôm nay & hàng đợi đơn', params: [path('stallId', 'ID quầy')] }) },
-    '/vendor/stalls/{stallId}/reports': { get: op({ tag: 'Chủ quầy', summary: 'Báo cáo doanh thu theo ngày', params: [path('stallId', 'ID quầy'), ...dateParams] }) },
+    '/vendor/stalls/{stallId}/reports': { get: op({ tag: 'Chủ quầy', summary: 'Báo cáo doanh thu theo ngày và theo ca (sáng / trưa / chiều / tối)', params: [path('stallId', 'ID quầy'), ...dateParams] }) },
     '/vendor/stalls/{stallId}/orders': {
       get: op({
         tag: 'Chủ quầy',

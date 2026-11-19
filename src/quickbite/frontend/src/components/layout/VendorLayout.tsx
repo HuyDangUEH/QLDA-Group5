@@ -1,12 +1,13 @@
 import { Suspense } from 'react';
 import { NavLink, Outlet } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BarChart3, ClipboardList, LayoutDashboard, Settings, Store, UtensilsCrossed } from 'lucide-react';
+import { BarChart3, Bell, ClipboardList, LayoutDashboard, Settings, Store, UtensilsCrossed } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/Switch';
 import { EmptyState, ErrorState, FullPageSpinner, Spinner } from '@/components/ui/States';
 import { inputClass } from '@/components/ui/styles';
 import { StallStatusBadge } from '@/features/food-discovery/badges';
+import { useUnreadCount } from '@/features/notifications/hooks';
 import { VendorStallProvider } from '@/features/vendor/VendorStallContext';
 import { useVendorStall } from '@/features/vendor/vendor-stall-context';
 import { toApiError } from '@/lib/api-client';
@@ -15,9 +16,10 @@ import { cn } from '@/lib/utils';
 
 const NAV = [
   { to: '/quan-ly', label: 'Tổng quan', icon: LayoutDashboard, end: true },
-  { to: '/quan-ly/don-hang', label: 'Đơn hàng', icon: ClipboardList, badge: true },
+  { to: '/quan-ly/don-hang', label: 'Đơn hàng', icon: ClipboardList, badge: 'orders' },
   { to: '/quan-ly/thuc-don', label: 'Thực đơn', icon: UtensilsCrossed },
   { to: '/quan-ly/bao-cao', label: 'Báo cáo', icon: BarChart3 },
+  { to: '/quan-ly/thong-bao', label: 'Thông báo', icon: Bell, badge: 'notifications' },
   { to: '/quan-ly/thong-tin-quay', label: 'Thông tin quầy', icon: Settings },
 ];
 
@@ -41,6 +43,8 @@ function VendorShell() {
     refetchInterval: 20_000,
   });
   const pending = dashboard.data?.queue.pending ?? 0;
+  // Thông báo chưa đọc của quầy đang chọn
+  const { data: unread = 0 } = useUnreadCount(stall?.id);
 
   const toggleAccepting = useMutation({
     mutationFn: (value: boolean) => vendorService.setAcceptingOrders(stall!.id, value),
@@ -120,9 +124,14 @@ function VendorShell() {
                 >
                   <Icon className="size-4.5" aria-hidden />
                   {label}
-                  {badge && pending > 0 && (
+                  {badge === 'orders' && pending > 0 && (
                     <span className="ml-auto rounded-full bg-brand-500 px-2 py-0.5 text-xs font-bold text-white" aria-label={`${pending} đơn mới`}>
                       {pending}
+                    </span>
+                  )}
+                  {badge === 'notifications' && unread > 0 && (
+                    <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white" aria-label={`${unread} thông báo chưa đọc`}>
+                      {unread > 99 ? '99+' : unread}
                     </span>
                   )}
                 </NavLink>
