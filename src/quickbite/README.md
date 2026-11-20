@@ -1,7 +1,17 @@
 # 🍜 QuickBite — Nền tảng đặt món ăn trong trường đại học
 
 QuickBite giúp sinh viên xem các quầy ăn trong khuôn viên trường, đặt món online, chọn điểm và giờ nhận,
-rồi trả tiền mặt khi nhận món. Chủ quầy nhận và xử lý đơn theo thời gian thực; quản trị viên quản lý toàn hệ thống.
+rồi trả tiền mặt khi nhận hoặc chuyển khoản VietQR. Chủ quầy nhận và xử lý đơn theo thời gian thực; quản trị viên quản lý toàn hệ thống.
+
+## 🌐 Bản đang chạy — v1.0.0
+
+| | Địa chỉ |
+|---|---|
+| **Giao diện** | https://quickbite-coral.vercel.app |
+| **API** | https://backend-henna-iota-13.vercel.app/api/v1 (kiểm tra: `/api/v1/health`) |
+| **Tài liệu API** | [docs/openapi.json](docs/openapi.json) (mở bằng https://editor.swagger.io) · Swagger UI khi chạy trên máy: http://localhost:4000/api/docs |
+| **Hạ tầng** | Vercel (backend serverless + frontend tĩnh, vùng Singapore) · MySQL trên Aiven (Singapore) |
+| **Ghi chú phát hành** | [docs/release-v1.0.md](docs/release-v1.0.md): nội dung bản phát hành, quy trình triển khai, smoke test |
 
 ## ✨ Tính năng
 
@@ -14,7 +24,7 @@ rồi trả tiền mặt khi nhận món. Chủ quầy nhận và xử lý đơn
 - Tìm món **không dấu** ("pho" → "Phở"), lọc theo danh mục / quầy / giá / còn hàng, sắp xếp, phân trang
 - Trang quầy (thực đơn theo danh mục, giờ mở cửa, đánh giá) và chi tiết món
 - Giỏ hàng lưu trên máy chủ, ghi chú từng món, **một quầy mỗi đơn**
-- Checkout: điểm nhận, khung giờ nhận, ghi chú, tiền mặt khi nhận
+- Checkout: điểm nhận, khung giờ nhận, ghi chú; trả **tiền mặt khi nhận** hoặc **chuyển khoản VietQR** (mã QR theo tài khoản của quầy)
 - Xác nhận đơn, theo dõi trạng thái tự cập nhật, lịch sử đơn, huỷ khi quầy chưa nhận
 - Đánh giá đơn đã hoàn thành, báo cáo đánh giá xấu
 - Chuông & trang thông báo
@@ -27,13 +37,14 @@ rồi trả tiền mặt khi nhận món. Chủ quầy nhận và xử lý đơn
 - Thực đơn: thêm, sửa, tải ảnh, bật tắt còn món & đề xuất, ngừng bán / bán lại
 - Bật / tắt nhận đơn nhanh
 - Thông tin quầy, giờ mở cửa, ảnh bìa (chủ quầy)
-- Báo cáo doanh thu theo ngày: biểu đồ, bảng số liệu, món bán chạy
+- Báo cáo doanh thu theo ngày **và theo ca** (sáng / trưa / chiều / tối): biểu đồ, bảng số liệu, món bán chạy
+- Thông báo của quầy (đơn mới, huỷ, tiền chuyển khoản về), xác nhận đã nhận chuyển khoản
 - Quản lý nhiều quầy (chuyển quầy nhanh)
 
 </td><td>
 
 - Tổng quan hệ thống: doanh thu 14 ngày, top quầy, trạng thái đơn
-- Người dùng: tạo, sửa vai trò / trạng thái, khoá, đặt lại mật khẩu
+- Người dùng: tạo, sửa vai trò / trạng thái, **khoá có xác nhận**, đặt lại mật khẩu
 - Quầy ăn: thêm, sửa, bật tắt, **gán chủ quầy & nhân viên**
 - Danh mục món, điểm nhận món
 - Đơn hàng toàn hệ thống, can thiệp trạng thái
@@ -79,7 +90,10 @@ flowchart LR
 | [docs/payments.md](docs/payments.md) | Thanh toán chuyển khoản VietQR, webhook SePay, giả lập webhook khi phát triển |
 | [docs/business-rules.md](docs/business-rules.md) | Máy trạng thái đơn, thanh toán, huỷ / từ chối / hoàn tiền, giờ nhận, giỏ hàng, quyền trong quầy, kiểm duyệt đánh giá |
 | [docs/security.md](docs/security.md) | Biện pháp bảo mật, kết quả rà soát, giới hạn đã biết |
-| [docs/deployment.md](docs/deployment.md) | Triển khai production (nginx, PM2, biến môi trường) |
+| [docs/deployment.md](docs/deployment.md) | Triển khai production (nginx / PM2 hoặc Vercel + Aiven), biến môi trường, **sao lưu & khôi phục**, quy trình khôi phục sự cố |
+| [docs/release-v1.0.md](docs/release-v1.0.md) | Bản phát hành v1.0.0: nội dung, URL production, quy trình triển khai & quay lại, smoke test |
+| [docs/cong-nghe.md](docs/cong-nghe.md) | Công nghệ & phiên bản thư viện đang dùng |
+| [docs/openapi.json](docs/openapi.json) | Tài liệu API dạng tĩnh (OpenAPI 3.1), xem không cần chạy server |
 
 ---
 
@@ -261,6 +275,8 @@ Mẫu cấu hình production: [backend/.env.production.example](backend/.env.pro
 | `npm run db:backup` | Sao lưu database ra `database/quickbite_backup_<ngày>_<giờ>.sql.gz` (+ file kiểm tra `.json`) |
 | `npm run db:restore -- "<file>" --yes` | Khôi phục từ file sao lưu (**ghi đè** dữ liệu hiện tại, tự sao lưu trước); thêm `--database=<tên>` để khôi phục vào database khác |
 | `npm run prod:check` | Kiểm tra cấu hình production (biến môi trường + database); thêm `-- --env-file=<file>` để kiểm tra file khác |
+| `npm run smoke -- --api=<URL> --web=<URL>` | Smoke test sau triển khai (chỉ đọc, thoát mã 1 nếu có lỗi) |
+| `npm run docs:openapi` | Xuất tài liệu API ra `docs/openapi.json` (chạy lại sau khi sửa API) |
 | `npm test` | Chạy toàn bộ test (database `*_test`) |
 
 ### Frontend (`cd frontend`)
@@ -278,8 +294,8 @@ Mẫu cấu hình production: [backend/.env.production.example](backend/.env.pro
 
 | | Số test | Bao phủ chính |
 |---|---|---|
-| Backend | **189** (11 file) | Đăng ký / đăng nhập / phiên / CSRF; phân quyền vai trò & quyền sở hữu quầy; tìm kiếm & lọc; giỏ hàng; tạo đơn bằng transaction (giá ở server, snapshot, chống đặt trùng **kể cả gửi đồng thời**); máy trạng thái & bấm đồng thời; thực đơn; tải ảnh giả mạo; báo cáo; thông báo; quản trị & nhật ký; đánh giá & kiểm duyệt; tài liệu OpenAPI khớp với route thật |
-| Frontend | **61** (15 file) | Form đăng nhập; route bảo vệ & chuyển hướng an toàn; header theo vai trò; thẻ & chi tiết món; bộ lọc đồng bộ URL; giỏ hàng; checkout (idempotencyKey); xung đột quầy khi thêm giỏ; nút xử lý đơn; thông báo; bảng dữ liệu; form đánh giá |
+| Backend | **383** (25 file) | Đăng ký / đăng nhập / phiên / CSRF; phân quyền vai trò & quyền sở hữu quầy; tìm kiếm & lọc; giỏ hàng; tạo đơn bằng transaction (giá ở server, snapshot, chống đặt trùng **kể cả gửi đồng thời**); máy trạng thái & bấm đồng thời; thanh toán VietQR & webhook SePay; thực đơn; tải ảnh giả mạo; báo cáo theo ngày / theo ca; thông báo; quản trị & nhật ký; đánh giá & kiểm duyệt; sao lưu / khôi phục / cấu hình production / smoke test; **tài liệu Swagger khớp 2 chiều với route và khớp dữ liệu trả về thật**; link trong tài liệu không hỏng |
+| Frontend | **148** (32 file) | Form đăng nhập; route bảo vệ & chuyển hướng an toàn; header theo vai trò; thẻ & chi tiết món; bộ lọc đồng bộ URL; giỏ hàng & giỏ mini; checkout (idempotencyKey); xung đột quầy khi thêm giỏ; nút xử lý đơn; thông báo (của tôi / của quầy); doanh thu theo ca; quản lý người dùng & xác nhận khoá; bảng dữ liệu; form đánh giá |
 
 Test backend chạy trên database riêng (`.env.test`) và **từ chối chạy** nếu tên database không kết thúc bằng `_test`, để không bao giờ xoá nhầm dữ liệu thật.
 
@@ -293,7 +309,8 @@ Test backend chạy trên database riêng (`.env.test`) và **từ chối chạy
 - [x] **Phase 4** — Giỏ hàng lưu DB, checkout, tạo đơn transaction, xác nhận, theo dõi & lịch sử đơn
 - [x] **Phase 5** — Dashboard chủ quầy, thực đơn & tải ảnh, xử lý đơn theo trạng thái, báo cáo, thông báo
 - [x] **Phase 6** — Dashboard quản trị, người dùng, quầy & nhân sự, danh mục, điểm nhận, đơn toàn hệ thống, kiểm duyệt, nhật ký; đánh giá của sinh viên
-- [x] **Phase 7** — Swagger/OpenAPI, rà soát bảo mật & sửa lỗi, `npm audit` 0 lỗ hổng, cài đặt mới từ đầu theo README, kiểm tra responsive, tài liệu
+- [x] **Phase 7** — Swagger/OpenAPI (đối chiếu 2 chiều với code), rà soát bảo mật & sửa lỗi, `npm audit` 0 lỗ hổng, cài đặt mới từ đầu theo README, kiểm tra responsive, tài liệu
+- [x] **Release v1.0.0** — sao lưu / khôi phục database, kiểm tra cấu hình production, triển khai Vercel + Aiven, smoke test đạt
 
 | Tiêu chí | Kết quả |
 |---|---|
@@ -302,15 +319,16 @@ Test backend chạy trên database riêng (`.env.test`) và **từ chối chạy
 | Đăng ký / đăng nhập; duyệt món, giỏ hàng, đặt đơn; đơn lưu trong MySQL | ✅ |
 | Chủ quầy quản lý thực đơn & xử lý đơn của mình; admin quản lý hệ thống | ✅ |
 | Trạng thái đơn theo đúng quy tắc; thao tác trái phép bị backend từ chối | ✅ (có test) |
-| Luồng chính có test tự động | ✅ 189 + 61 test |
+| Luồng chính có test tự động | ✅ 383 + 148 test |
 | Responsive, có trạng thái đang tải / trống / lỗi | ✅ (14 trang không tràn ngang ở 375px) |
 | Không phụ thuộc dữ liệu giả cố định trong giao diện | ✅ mọi dữ liệu lấy từ API |
 
 ### Giới hạn đã biết
 
-- Thanh toán **chỉ tiền mặt khi nhận món**; thanh toán online chưa tích hợp (module `payments` đã tách sẵn để bổ sung).
+- Thanh toán: **tiền mặt khi nhận** và **chuyển khoản VietQR** (xác nhận tự động qua webhook SePay hoặc quầy xác nhận). Cổng thanh toán thẻ / ví điện tử chưa tích hợp.
 - Thông báo & trạng thái đơn cập nhật bằng **polling** (15–30 giây), chưa dùng WebSocket.
 - Bộ đếm giới hạn tần suất lưu trong bộ nhớ (một tiến trình). Xem [docs/security.md](docs/security.md#8-giới-hạn-đã-biết--hướng-cải-thiện).
+- Trên Vercel, ổ đĩa không lưu lâu dài: ảnh chủ quầy tự tải lên có thể mất sau mỗi lần triển khai lại (ảnh mẫu trong `frontend/public/images` không bị ảnh hưởng).
 
 ---
 
@@ -330,7 +348,8 @@ quickbite/
 │   │   ├── routes/index.ts      # Gắn module vào /api/v1
 │   │   ├── utils/               # lỗi, phản hồi, ngày giờ, giờ mở cửa, slug, mã đơn
 │   │   ├── app.ts · server.ts
-│   ├── scripts/check-db.ts
+│   ├── api/index.js · vercel.json  # Điểm vào hàm serverless & cấu hình build trên Vercel
+│   ├── scripts/                 # check-db, backup-db, restore-db, check-production, smoke-test, export-openapi
 │   └── tests/                   # Test tích hợp & đơn vị
 ├── frontend/src/
 │   ├── app/                     # App, router (tải trang theo nhu cầu)
@@ -339,8 +358,9 @@ quickbite/
 │   ├── pages/                   # Trang sinh viên · pages/vendor · pages/admin
 │   ├── services/                # Lớp gọi API (Axios)
 │   ├── lib/ · hooks/ · types/ · test/
-├── database/                    # SQL hỗ trợ (tạo user, init Docker)
-├── docs/                        # api, database, business-rules, security, deployment
+├── frontend/vercel.json         # Chuyển /api sang backend, SPA về index.html
+├── database/                    # SQL hỗ trợ (tạo user, init Docker); bản sao lưu (không đưa lên Git)
+├── docs/                        # api, openapi.json, database, business-rules, payments, security, deployment, release-v1.0, cong-nghe
 └── docker-compose.yml           # MySQL tuỳ chọn
 ```
 
