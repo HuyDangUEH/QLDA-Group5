@@ -116,7 +116,7 @@ Tất cả API nằm dưới `/api/v1`. Phản hồi thống nhất:
 
 > 💡 **Tìm kiếm không dấu:** database dùng collation `utf8mb4_unicode_ci` nên tìm `pho` hoặc `com chien` vẫn ra "Phở", "Cơm chiên".
 >
-> **Banner khuyến mãi** trên trang chủ cấu hình trong [`backend/src/config/promotions.ts`](backend/src/config/promotions.ts).
+> **Banner khuyến mãi** trên trang chủ cấu hình trong [`backend/src/config/promotions.ts`](../backend/src/config/promotions.ts).
 >
 > **Giờ mở cửa** tính theo giờ Việt Nam (`Asia/Ho_Chi_Minh`). Một món chỉ đặt được (`canOrder`) khi món còn hàng **và** quầy đang hoạt động, đang bật nhận đơn, đang trong giờ mở cửa.
 
