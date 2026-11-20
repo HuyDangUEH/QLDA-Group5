@@ -127,6 +127,180 @@ export const openApiSpec = {
       cookieAuth: { type: 'apiKey', in: 'cookie', name: 'qb_session', description: 'JWT trong cookie httpOnly, đặt bởi /auth/login' },
     },
     schemas: {
+      Category: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          name: { type: 'string', example: 'Cơm' },
+          slug: { type: 'string', example: 'com' },
+          description: { type: ['string', 'null'] },
+          icon: { type: ['string', 'null'], description: 'Tên biểu tượng (lucide), vd "utensils"' },
+          sortOrder: { type: 'integer', description: 'Thứ tự hiển thị (chỉ có ở GET /categories)' },
+          itemCount: { type: 'integer', description: 'Số món đang bán thuộc danh mục' },
+        },
+        required: ['id', 'name', 'slug', 'description', 'icon', 'itemCount'],
+      },
+      PickupLocation: {
+        type: 'object',
+        properties: { id: { type: 'integer' }, name: { type: 'string', example: 'Căn tin cơ sở B' }, building: { type: ['string', 'null'] }, description: { type: ['string', 'null'] } },
+      },
+      Bank: {
+        type: 'object',
+        properties: { bin: { type: 'string', example: '970436' }, code: { type: 'string', example: 'VCB' }, shortName: { type: 'string', example: 'Vietcombank' }, name: { type: 'string' } },
+      },
+      PublicReview: {
+        type: 'object',
+        properties: { id: { type: 'integer' }, rating: { type: 'integer', minimum: 1, maximum: 5 }, comment: { type: ['string', 'null'] }, createdAt: { type: 'string', format: 'date-time' }, author: { type: 'string', description: 'Tên rút gọn của sinh viên' } },
+      },
+      StallDetail: {
+        type: 'object',
+        properties: {
+          stall: ref('Stall'),
+          categories: { type: 'array', items: { type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' }, slug: { type: 'string' } } }, description: 'Danh mục có món của quầy (để chia nhóm thực đơn)' },
+          menuItems: { type: 'array', items: ref('MenuItem') },
+          reviews: { type: 'array', items: ref('PublicReview'), description: 'Đánh giá mới nhất' },
+        },
+      },
+      MenuItemDetail: {
+        type: 'object',
+        properties: { item: ref('MenuItem'), related: { type: 'array', items: ref('MenuItem'), description: 'Món khác cùng quầy' } },
+      },
+      Home: {
+        type: 'object',
+        properties: {
+          categories: { type: 'array', items: ref('Category') },
+          featuredStalls: { type: 'array', items: ref('Stall') },
+          popularItems: { type: 'array', items: ref('MenuItem'), description: 'Bán chạy nhất' },
+          featuredItems: { type: 'array', items: ref('MenuItem'), description: 'Quầy đề xuất' },
+          promotions: {
+            type: 'array',
+            description: 'Banner khuyến mãi (cấu hình trong src/config/promotions.ts)',
+            items: {
+              type: 'object',
+              properties: {
+                id: { type: 'string' },
+                title: { type: 'string', example: 'Tiếp sức mùa thi' },
+                description: { type: 'string' },
+                badge: { type: 'string' },
+                link: { type: 'string', description: 'Đường dẫn nội bộ của giao diện, vd /mon-an?category=do-uong' },
+                imageUrl: { type: 'string' },
+                tone: { type: 'string', enum: ['brand', 'navy'] },
+              },
+            },
+          },
+        },
+      },
+      Notification: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          userId: { type: 'integer', description: 'Người nhận (luôn là người đang đăng nhập)' },
+          type: { type: 'string', enum: ['ORDER_STATUS', 'SYSTEM'] },
+          title: { type: 'string', example: 'Đơn mới: QB-261115-001' },
+          message: { type: 'string' },
+          isRead: { type: 'boolean' },
+          createdAt: { type: 'string', format: 'date-time' },
+          orderId: { type: ['integer', 'null'] },
+          order: { oneOf: [{ type: 'object', properties: { id: { type: 'integer' }, orderNumber: { type: 'string' }, stallId: { type: 'integer' } } }, { type: 'null' }] },
+        },
+      },
+      OrderSummary: {
+        type: 'object',
+        description: 'Dòng trong danh sách đơn (lịch sử đơn của sinh viên)',
+        properties: {
+          id: { type: 'integer' },
+          orderNumber: { type: 'string', example: 'QB-261016-4F7K' },
+          status: ORDER_STATUS,
+          paymentMethod: { type: 'string', enum: ['CASH_ON_PICKUP', 'VIETQR'] },
+          paymentStatus: { type: 'string', enum: ['UNPAID', 'PAID', 'REFUNDED', 'VOIDED'] },
+          total: money,
+          itemCount: { type: 'integer', description: 'Tổng số phần' },
+          pickupTime: { type: ['string', 'null'], format: 'date-time' },
+          createdAt: { type: 'string', format: 'date-time' },
+          stall: { type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' }, slug: { type: 'string' }, imageUrl: { type: ['string', 'null'] } } },
+          pickupLocation: { oneOf: [{ type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' } } }, { type: 'null' }] },
+          items: { type: 'array', items: { type: 'object', properties: { itemName: { type: 'string' }, quantity: { type: 'integer' } } } },
+        },
+      },
+      VendorOrderListItem: {
+        type: 'object',
+        description: 'Dòng trong danh sách đơn của quầy (rút gọn; xem chi tiết đơn để có đủ thông tin)',
+        properties: {
+          id: { type: 'integer' },
+          orderNumber: { type: 'string' },
+          status: ORDER_STATUS,
+          paymentMethod: { type: 'string', enum: ['CASH_ON_PICKUP', 'VIETQR'] },
+          paymentStatus: { type: 'string', enum: ['UNPAID', 'PAID', 'REFUNDED', 'VOIDED'] },
+          total: money,
+          itemCount: { type: 'integer' },
+          pickupTime: { type: ['string', 'null'], format: 'date-time' },
+          customerNote: { type: ['string', 'null'] },
+          createdAt: { type: 'string', format: 'date-time' },
+          student: { type: 'object', properties: { fullName: { type: 'string' }, phone: { type: ['string', 'null'] } } },
+          pickupLocation: { oneOf: [{ type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' } } }, { type: 'null' }] },
+          items: { type: 'array', items: { type: 'object', properties: { itemName: { type: 'string' }, quantity: { type: 'integer' }, note: { type: ['string', 'null'] } } } },
+          awaitingPayment: { type: 'boolean', description: 'Đơn chuyển khoản đang chờ tiền về' },
+          paymentExpiresAt: { type: ['string', 'null'], format: 'date-time', description: 'Hạn chuyển khoản (khi awaitingPayment)' },
+          nextStatuses: { type: 'array', items: ORDER_STATUS, description: 'Trạng thái được phép chuyển tiếp' },
+        },
+      },
+      AdminOrderListItem: {
+        type: 'object',
+        properties: {
+          id: { type: 'integer' },
+          orderNumber: { type: 'string' },
+          status: ORDER_STATUS,
+          paymentMethod: { type: 'string', enum: ['CASH_ON_PICKUP', 'VIETQR'] },
+          paymentStatus: { type: 'string', enum: ['UNPAID', 'PAID', 'REFUNDED', 'VOIDED'] },
+          total: money,
+          createdAt: { type: 'string', format: 'date-time' },
+          stall: { type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' } } },
+          student: { type: 'object', properties: { id: { type: 'integer' }, fullName: { type: 'string' }, email: { type: 'string', format: 'email' } } },
+          _count: { type: 'object', properties: { items: { type: 'integer', description: 'Số dòng món' } } },
+          nextStatuses: { type: 'array', items: ORDER_STATUS, description: 'Trạng thái admin được phép chuyển tiếp' },
+        },
+      },
+      TopItem: {
+        type: 'object',
+        properties: { menuItemId: { type: 'integer' }, name: { type: 'string' }, quantity: { type: 'integer', description: 'Số phần đã bán (đơn hoàn thành)' }, revenue: money },
+      },
+      VendorDashboard: {
+        type: 'object',
+        properties: {
+          date: { type: 'string', format: 'date', description: 'Hôm nay theo giờ Việt Nam' },
+          stall: { type: 'object', properties: { isAcceptingOrders: { type: 'boolean' }, openTime: { type: 'string' }, closeTime: { type: 'string' } } },
+          today: { type: 'object', properties: { orders: { type: 'integer' }, completed: { type: 'integer' }, cancelled: { type: 'integer', description: 'Huỷ + từ chối' }, revenue: money } },
+          queue: { type: 'object', description: 'Đơn đang chờ xử lý', properties: { pending: { type: 'integer' }, inProgress: { type: 'integer' }, ready: { type: 'integer' } } },
+          rating: { type: 'object', properties: { average: { type: ['number', 'null'] }, count: { type: 'integer' } } },
+          topItems7Days: { type: 'array', items: ref('TopItem') },
+        },
+      },
+      SalesReport: {
+        type: 'object',
+        properties: {
+          range: { type: 'object', properties: { from: { type: 'string', format: 'date' }, to: { type: 'string', format: 'date' } } },
+          totals: { type: 'object', properties: { orders: { type: 'integer' }, completed: { type: 'integer' }, cancelled: { type: 'integer' }, revenue: money, averageOrderValue: money } },
+          statusCounts: { type: 'object', additionalProperties: { type: 'integer' }, description: 'Số đơn theo từng trạng thái, vd { "COMPLETED": 6 }' },
+          series: { type: 'array', description: 'Theo từng ngày (kể cả ngày không có đơn)', items: { type: 'object', properties: { date: { type: 'string', format: 'date' }, orders: { type: 'integer' }, completed: { type: 'integer' }, revenue: money } } },
+          shifts: {
+            type: 'array',
+            description: 'Doanh thu theo ca (giờ đặt đơn, giờ Việt Nam). Luôn đủ 4 ca; thêm "other" (Ngoài giờ) khi có đơn ngoài khung giờ',
+            items: {
+              type: 'object',
+              properties: {
+                key: { type: 'string', enum: ['morning', 'noon', 'afternoon', 'evening', 'other'] },
+                label: { type: 'string', example: 'Ca sáng' },
+                start: { type: 'string', example: '06:00' },
+                end: { type: 'string', example: '11:00' },
+                orders: { type: 'integer' },
+                completed: { type: 'integer' },
+                revenue: money,
+              },
+            },
+          },
+          topItems: { type: 'array', items: ref('TopItem') },
+        },
+      },
       Error: {
         type: 'object',
         properties: {
@@ -155,7 +329,8 @@ export const openApiSpec = {
           studentCode: { type: ['string', 'null'] },
           role: { type: 'string', enum: ['STUDENT', 'VENDOR', 'ADMIN'] },
           status: { type: 'string', enum: ['ACTIVE', 'INACTIVE', 'SUSPENDED'] },
-          stalls: { type: 'array', items: { type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' }, slug: { type: 'string' }, role: { type: 'string', enum: ['OWNER', 'STAFF'] } } } },
+          stalls: { type: 'array', description: 'Quầy đang làm việc (chủ quầy / nhân viên)', items: { type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' }, slug: { type: 'string' }, role: { type: 'string', enum: ['OWNER', 'STAFF'] } } } },
+          createdAt: { type: 'string', format: 'date-time' },
         },
       },
       Stall: {
@@ -164,7 +339,11 @@ export const openApiSpec = {
           id: { type: 'integer' },
           name: { type: 'string' },
           slug: { type: 'string' },
+          description: { type: ['string', 'null'] },
+          imageUrl: { type: ['string', 'null'] },
           location: { type: 'string' },
+          phone: { type: ['string', 'null'] },
+          isAcceptingOrders: { type: 'boolean', description: 'Quầy đang bật nhận đơn' },
           openTime: { type: 'string', example: '07:00' },
           closeTime: { type: 'string', example: '20:00' },
           isOpenNow: { type: 'boolean' },
@@ -172,7 +351,9 @@ export const openApiSpec = {
           acceptsVietQr: { type: 'boolean', description: 'Quầy nhận thanh toán chuyển khoản VietQR' },
           paymentTimeoutMinutes: { type: 'integer', minimum: 5, maximum: 60, description: 'Số phút được phép chuyển khoản; quá hạn đơn tự huỷ' },
           rating: { type: 'object', properties: { average: { type: ['number', 'null'] }, count: { type: 'integer' } } },
+          menuItemCount: { type: 'integer', description: 'Số món đang bán (có ở danh sách / chi tiết quầy)' },
         },
+        required: ['id', 'name', 'slug', 'description', 'imageUrl', 'location', 'phone', 'isAcceptingOrders', 'openTime', 'closeTime', 'isOpenNow', 'canOrderNow', 'acceptsVietQr', 'paymentTimeoutMinutes', 'rating'],
       },
       MenuItem: {
         type: 'object',
@@ -184,9 +365,14 @@ export const openApiSpec = {
           portion: { type: ['string', 'null'], description: 'Định lượng một phần, vd "1 tô · 450g"' },
           imageUrl: { type: ['string', 'null'] },
           isAvailable: { type: 'boolean' },
+          isFeatured: { type: 'boolean', description: 'Món quầy đề xuất' },
           soldCount: { type: 'integer' },
           category: { type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' }, slug: { type: 'string' } } },
-          stall: { type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' }, slug: { type: 'string' }, isOpenNow: { type: 'boolean' } } },
+          stall: {
+            type: 'object',
+            properties: { id: { type: 'integer' }, name: { type: 'string' }, slug: { type: 'string' }, location: { type: 'string', description: 'Chỉ có ở chi tiết món' }, isOpenNow: { type: 'boolean' } },
+            required: ['id', 'name', 'slug', 'isOpenNow'],
+          },
           canOrder: { type: 'boolean' },
         },
       },
@@ -214,9 +400,20 @@ export const openApiSpec = {
           serviceFee: money,
           discount: money,
           total: money,
+          customerNote: { type: ['string', 'null'], description: 'Ghi chú của sinh viên cho cả đơn' },
           pickupTime: { type: ['string', 'null'], format: 'date-time' },
-          items: { type: 'array', items: { type: 'object', properties: { itemName: { type: 'string' }, unitPrice: money, quantity: { type: 'integer' }, note: { type: ['string', 'null'] }, lineTotal: money } } },
-          statusHistory: { type: 'array', items: { type: 'object', properties: { toStatus: ORDER_STATUS, createdAt: { type: 'string', format: 'date-time' }, note: { type: ['string', 'null'] } } } },
+          cancelReason: { type: ['string', 'null'], description: 'Lý do huỷ / từ chối' },
+          createdAt: { type: 'string', format: 'date-time' },
+          acceptedAt: { type: ['string', 'null'], format: 'date-time' },
+          readyAt: { type: ['string', 'null'], format: 'date-time' },
+          completedAt: { type: ['string', 'null'], format: 'date-time' },
+          cancelledAt: { type: ['string', 'null'], format: 'date-time' },
+          stall: { type: 'object', properties: { id: { type: 'integer' }, name: { type: 'string' }, slug: { type: 'string' }, location: { type: 'string' }, phone: { type: ['string', 'null'] }, imageUrl: { type: ['string', 'null'] } } },
+          pickupLocation: { oneOf: [ref('PickupLocation'), { type: 'null' }] },
+          student: { type: 'object', properties: { id: { type: 'integer' }, fullName: { type: 'string' }, phone: { type: ['string', 'null'] }, studentCode: { type: ['string', 'null'] } } },
+          items: { type: 'array', items: { type: 'object', properties: { id: { type: 'integer' }, menuItemId: { type: ['integer', 'null'] }, itemName: { type: 'string', description: 'Tên món lúc đặt (không đổi khi quầy sửa món)' }, unitPrice: money, quantity: { type: 'integer' }, note: { type: ['string', 'null'] }, lineTotal: money } } },
+          statusHistory: { type: 'array', items: { type: 'object', properties: { id: { type: 'integer' }, fromStatus: { oneOf: [ORDER_STATUS, { type: 'null' }] }, toStatus: ORDER_STATUS, note: { type: ['string', 'null'] }, createdAt: { type: 'string', format: 'date-time' } } } },
+          review: { oneOf: [{ type: 'object', properties: { id: { type: 'integer' }, rating: { type: 'integer' }, comment: { type: ['string', 'null'] }, createdAt: { type: 'string', format: 'date-time' } } }, { type: 'null' }], description: 'Đánh giá của sinh viên (nếu đã đánh giá)' },
           awaitingPayment: { type: 'boolean', description: 'Đơn chuyển khoản đang chờ tiền về (quầy chưa nhận đơn được)' },
           vietQr: {
             description: 'Thông tin chuyển khoản; null với đơn tiền mặt',
@@ -226,6 +423,7 @@ export const openApiSpec = {
                 properties: {
                   bankBin: { type: 'string', example: '970436' },
                   bankShortName: { type: 'string', example: 'Vietcombank' },
+                  bankName: { type: ['string', 'null'] },
                   accountNo: { type: 'string' },
                   accountName: { type: 'string', example: 'NGUYEN VAN DAT' },
                   amount: money,
@@ -242,6 +440,7 @@ export const openApiSpec = {
           canCancel: { type: 'boolean' },
           nextStatuses: { type: 'array', items: ORDER_STATUS, description: 'Chỉ có ở API chủ quầy / admin' },
         },
+        required: ['id', 'orderNumber', 'status', 'paymentMethod', 'paymentStatus', 'subtotal', 'serviceFee', 'discount', 'total', 'customerNote', 'pickupTime', 'cancelReason', 'createdAt', 'acceptedAt', 'readyAt', 'completedAt', 'cancelledAt', 'stall', 'pickupLocation', 'student', 'items', 'statusHistory', 'review', 'vietQr', 'awaitingPayment', 'canCancel'],
       },
     },
   },
@@ -249,11 +448,11 @@ export const openApiSpec = {
     '/health': { get: op({ tag: 'Hệ thống', summary: 'Kiểm tra API và kết nối MySQL', auth: false, errors: { 503: err('Không kết nối được MySQL') } }) },
 
     // ─────────── Khám phá món ───────────
-    '/home': { get: op({ tag: 'Khám phá món', summary: 'Dữ liệu trang chủ (danh mục, quầy nổi bật, món bán chạy, khuyến mãi)', auth: false }) },
-    '/categories': { get: op({ tag: 'Khám phá món', summary: 'Danh mục đang hoạt động', auth: false }) },
+    '/home': { get: op({ tag: 'Khám phá món', summary: 'Dữ liệu trang chủ (danh mục, quầy nổi bật, món bán chạy, khuyến mãi)', auth: false, response: ok(ref('Home')) }) },
+    '/categories': { get: op({ tag: 'Khám phá món', summary: 'Danh mục đang hoạt động', auth: false, response: ok({ type: 'array', items: ref('Category') }) }) },
     '/stalls': { get: op({ tag: 'Khám phá món', summary: 'Danh sách quầy', auth: false, params: [query('q', 'Tìm theo tên, mô tả, vị trí')], response: ok({ type: 'array', items: ref('Stall') }) }) },
     '/stalls/{idOrSlug}': {
-      get: op({ tag: 'Khám phá món', summary: 'Chi tiết quầy + thực đơn + đánh giá', auth: false, params: [path('idOrSlug', 'ID hoặc slug', { type: 'string' })] }),
+      get: op({ tag: 'Khám phá món', summary: 'Chi tiết quầy + thực đơn + đánh giá', auth: false, params: [path('idOrSlug', 'ID hoặc slug', { type: 'string' })], response: ok(ref('StallDetail')) }),
     },
     '/menu-items': {
       get: op({
@@ -277,8 +476,8 @@ export const openApiSpec = {
         response: paged(ref('MenuItem')),
       }),
     },
-    '/menu-items/{id}': { get: op({ tag: 'Khám phá món', summary: 'Chi tiết món + món cùng quầy', auth: false, params: [path('id', 'ID món')] }) },
-    '/pickup-locations': { get: op({ tag: 'Khám phá món', summary: 'Điểm nhận món đang hoạt động', auth: false }) },
+    '/menu-items/{id}': { get: op({ tag: 'Khám phá món', summary: 'Chi tiết món + món cùng quầy', auth: false, params: [path('id', 'ID món')], response: ok(ref('MenuItemDetail')) }) },
+    '/pickup-locations': { get: op({ tag: 'Khám phá món', summary: 'Điểm nhận món đang hoạt động', auth: false, response: ok({ type: 'array', items: ref('PickupLocation') }) }) },
 
     // ─────────── Xác thực & tài khoản ───────────
     '/auth/register': {
@@ -293,10 +492,10 @@ export const openApiSpec = {
     '/users/me/password': { patch: op({ tag: 'Xác thực & tài khoản', summary: 'Đổi mật khẩu (đăng xuất các thiết bị khác)', body: changePasswordSchema }) },
 
     // ─────────── Thông báo ───────────
-    '/notifications': { get: op({ tag: 'Thông báo', summary: 'Thông báo của tôi', params: [query('unread', 'Chỉ chưa đọc', { type: 'string', enum: ['true', 'false'] }), stallQuery, ...pageParams], response: paged({ type: 'object' }) }) },
-    '/notifications/unread-count': { get: op({ tag: 'Thông báo', summary: 'Số thông báo chưa đọc', params: [stallQuery] }) },
+    '/notifications': { get: op({ tag: 'Thông báo', summary: 'Thông báo của tôi', params: [query('unread', 'Chỉ chưa đọc', { type: 'string', enum: ['true', 'false'] }), stallQuery, ...pageParams], response: paged(ref('Notification')) }) },
+    '/notifications/unread-count': { get: op({ tag: 'Thông báo', summary: 'Số thông báo chưa đọc', params: [stallQuery], response: ok({ type: 'object', properties: { count: { type: 'integer' } } }) }) },
     '/notifications/{id}/read': { patch: op({ tag: 'Thông báo', summary: 'Đánh dấu đã đọc', params: [path('id', 'ID thông báo')] }) },
-    '/notifications/read-all': { post: op({ tag: 'Thông báo', summary: 'Đánh dấu tất cả đã đọc', params: [stallQuery] }) },
+    '/notifications/read-all': { post: op({ tag: 'Thông báo', summary: 'Đánh dấu tất cả đã đọc', params: [stallQuery], response: ok({ type: 'object', properties: { updated: { type: 'integer', description: 'Số thông báo vừa đánh dấu' } } }) }) },
 
     // ─────────── Giỏ hàng ───────────
     '/cart': {
@@ -322,13 +521,13 @@ export const openApiSpec = {
         response: ok({ type: 'object', properties: { order: ref('Order'), created: { type: 'boolean' } } }, 'Đã tạo đơn'),
         errors: { 200: ok({ type: 'object', properties: { order: ref('Order'), created: { const: false } } }, 'Đơn đã tồn tại với idempotencyKey này'), 422: err('ORDER_REJECTED: giỏ trống, món hết, quầy đóng, điểm nhận / giờ nhận không hợp lệ') },
       }),
-      get: op({ tag: 'Đơn hàng (sinh viên)', summary: 'Lịch sử đơn của tôi', params: [query('group', 'Nhóm trạng thái', { type: 'string', enum: ['active', 'completed', 'cancelled'] }), ...pageParams], response: paged({ type: 'object' }) }),
+      get: op({ tag: 'Đơn hàng (sinh viên)', summary: 'Lịch sử đơn của tôi', params: [query('group', 'Nhóm trạng thái', { type: 'string', enum: ['active', 'completed', 'cancelled'] }), ...pageParams], response: paged(ref('OrderSummary')) }),
     },
     '/orders/{id}': { get: op({ tag: 'Đơn hàng (sinh viên)', summary: 'Chi tiết & theo dõi đơn', params: [path('id', 'ID đơn')], response: ok({ type: 'object', properties: { order: ref('Order') } }) }) },
-    '/orders/{id}/cancel': { post: op({ tag: 'Đơn hàng (sinh viên)', summary: 'Huỷ đơn (chỉ khi còn PENDING)', params: [path('id', 'ID đơn')], body: cancelOrderSchema, errors: { 422: err('Đơn không còn huỷ được') } }) },
+    '/orders/{id}/cancel': { post: op({ tag: 'Đơn hàng (sinh viên)', summary: 'Huỷ đơn (chỉ khi còn PENDING)', params: [path('id', 'ID đơn')], body: cancelOrderSchema, response: ok({ type: 'object', properties: { order: ref('Order') } }), errors: { 422: err('Đơn không còn huỷ được') } }) },
     '/orders/{id}/review': { post: op({ tag: 'Đơn hàng (sinh viên)', summary: 'Đánh giá đơn đã hoàn thành', params: [path('id', 'ID đơn')], body: createReviewSchema, status: 201, errors: { 409: err('Đã đánh giá'), 422: err('Đơn chưa hoàn thành') } }) },
     // ─────────── Thanh toán ───────────
-    '/payments/banks': { get: op({ tag: 'Thanh toán', summary: 'Ngân hàng hỗ trợ VietQR (mã BIN)', auth: false }) },
+    '/payments/banks': { get: op({ tag: 'Thanh toán', summary: 'Ngân hàng hỗ trợ VietQR (mã BIN)', auth: false, response: ok({ type: 'array', items: ref('Bank') }) }) },
     '/payments/sepay/webhook': {
       post: op({
         tag: 'Thanh toán',
@@ -357,17 +556,31 @@ export const openApiSpec = {
     '/vendor/stalls/{stallId}/accepting-orders': {
       patch: op({ tag: 'Chủ quầy', summary: 'Bật / tắt nhận đơn', params: [path('stallId', 'ID quầy')], body: { type: 'object', required: ['isAcceptingOrders'], properties: { isAcceptingOrders: { type: 'boolean' } } } }),
     },
-    '/vendor/stalls/{stallId}/dashboard': { get: op({ tag: 'Chủ quầy', summary: 'Số liệu hôm nay & hàng đợi đơn', params: [path('stallId', 'ID quầy')] }) },
-    '/vendor/stalls/{stallId}/reports': { get: op({ tag: 'Chủ quầy', summary: 'Báo cáo doanh thu theo ngày và theo ca (sáng / trưa / chiều / tối)', params: [path('stallId', 'ID quầy'), ...dateParams] }) },
+    '/vendor/stalls/{stallId}/dashboard': { get: op({ tag: 'Chủ quầy', summary: 'Số liệu hôm nay & hàng đợi đơn', params: [path('stallId', 'ID quầy')], response: ok(ref('VendorDashboard')) }) },
+    '/vendor/stalls/{stallId}/reports': { get: op({ tag: 'Chủ quầy', summary: 'Báo cáo doanh thu theo ngày và theo ca (sáng / trưa / chiều / tối)', params: [path('stallId', 'ID quầy'), ...dateParams], response: ok(ref('SalesReport')) }) },
     '/vendor/stalls/{stallId}/orders': {
       get: op({
         tag: 'Chủ quầy',
         summary: 'Đơn của quầy (kèm số lượng từng tab)',
         params: [path('stallId', 'ID quầy'), query('tab', 'Tab', { type: 'string', enum: ['new', 'in_progress', 'ready', 'completed', 'cancelled'] }), query('q', 'Mã đơn / tên sinh viên'), ...dateParams, ...pageParams],
-        response: paged(ref('Order')),
+        response: {
+          description: 'Thành công (có phân trang + số đơn từng tab)',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  success: { const: true },
+                  data: { type: 'array', items: ref('VendorOrderListItem') },
+                  meta: { allOf: [ref('Pagination'), { type: 'object', properties: { tabCounts: { type: 'object', properties: { new: { type: 'integer' }, in_progress: { type: 'integer' }, ready: { type: 'integer' }, completed: { type: 'integer' }, cancelled: { type: 'integer' } } } } }] },
+                },
+              },
+            },
+          },
+        },
       }),
     },
-    '/vendor/stalls/{stallId}/orders/{orderId}': { get: op({ tag: 'Chủ quầy', summary: 'Chi tiết đơn + bước tiếp theo hợp lệ', params: [path('stallId', 'ID quầy'), path('orderId', 'ID đơn')] }) },
+    '/vendor/stalls/{stallId}/orders/{orderId}': { get: op({ tag: 'Chủ quầy', summary: 'Chi tiết đơn + bước tiếp theo hợp lệ', params: [path('stallId', 'ID quầy'), path('orderId', 'ID đơn')], response: ok({ type: 'object', properties: { order: ref('Order') } }) }) },
     '/vendor/stalls/{stallId}/orders/{orderId}/status': {
       patch: op({ tag: 'Chủ quầy', summary: 'Chuyển trạng thái đơn', description: 'Theo máy trạng thái; REJECTED / CANCELLED bắt buộc `reason`.', params: [path('stallId', 'ID quầy'), path('orderId', 'ID đơn')], body: updateOrderStatusSchema, errors: { 409: err('Trạng thái vừa bị người khác đổi'), 422: err('Chuyển trạng thái không hợp lệ') } }),
     },
@@ -436,7 +649,7 @@ export const openApiSpec = {
       delete: op({ tag: 'Quản trị', summary: 'Xoá điểm nhận chưa có đơn', params: [path('id', 'ID điểm nhận')], errors: { 422: err('Điểm nhận đã có đơn hàng') } }),
     },
     '/admin/orders': {
-      get: op({ tag: 'Quản trị', summary: 'Đơn toàn hệ thống', params: [query('status', 'Trạng thái', ORDER_STATUS), query('stallId', 'ID quầy', { type: 'integer' }), query('q', 'Mã đơn / sinh viên'), ...dateParams, ...pageParams], response: paged(ref('Order')) }),
+      get: op({ tag: 'Quản trị', summary: 'Đơn toàn hệ thống', params: [query('status', 'Trạng thái', ORDER_STATUS), query('stallId', 'ID quầy', { type: 'integer' }), query('q', 'Mã đơn / sinh viên'), ...dateParams, ...pageParams], response: paged(ref('AdminOrderListItem')) }),
     },
     '/admin/orders/{id}': { get: op({ tag: 'Quản trị', summary: 'Chi tiết đơn', params: [path('id', 'ID đơn')] }) },
     '/admin/orders/{id}/status': { patch: op({ tag: 'Quản trị', summary: 'Đổi trạng thái đơn (có ghi nhật ký)', params: [path('id', 'ID đơn')], body: updateOrderStatusSchema }) },

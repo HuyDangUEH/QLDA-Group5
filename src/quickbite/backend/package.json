@@ -23,7 +23,8 @@
     "prisma:generate": "prisma generate",
     "test": "vitest run",
     "test:watch": "vitest",
-    "smoke": "tsx scripts/smoke-test.ts"
+    "smoke": "tsx scripts/smoke-test.ts",
+    "docs:openapi": "tsx scripts/export-openapi.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
