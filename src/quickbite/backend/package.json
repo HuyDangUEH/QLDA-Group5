@@ -22,7 +22,8 @@
     "prod:check": "tsx scripts/check-production.ts",
     "prisma:generate": "prisma generate",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "smoke": "tsx scripts/smoke-test.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
