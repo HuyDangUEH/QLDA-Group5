@@ -12,11 +12,23 @@ Cách thử API cần đăng nhập trong Swagger UI:
 1. Mở `POST /auth/login` → **Try it out** → nhập email & mật khẩu demo → **Execute**.
 2. Server đặt cookie `qb_session`; các API khác trong cùng trang sẽ tự gửi cookie này.
 
-> Body của request trong tài liệu được **sinh tự động từ schema Zod** dùng để kiểm tra dữ liệu
-> (`backend/src/docs/openapi.ts`), nên luôn khớp với quy tắc validate thật.
-> Test `backend/tests/openapi.test.ts` kiểm tra mọi đường dẫn trong tài liệu đều tồn tại trên server.
->
-> Trang tài liệu **tắt mặc định khi production** (bật bằng `API_DOCS=true`).
+**Không chạy server:** mở file [`docs/openapi.json`](openapi.json) bằng https://editor.swagger.io (File → Import file) hoặc nhập vào Postman.
+Tạo lại file sau khi sửa API: `cd backend && npm run docs:openapi`.
+
+> Trang tài liệu **tắt mặc định khi production** (bật bằng `API_DOCS=true`). Khi đó dùng file `docs/openapi.json` ở trên.
+
+### Tài liệu luôn khớp với code
+
+| Cơ chế | Kiểm tra |
+|---|---|
+| Body request sinh tự động từ **schema Zod** dùng để validate (`backend/src/docs/openapi.ts`) | Luôn khớp quy tắc validate thật |
+| `backend/tests/openapi.test.ts` | Mọi đường dẫn trong tài liệu đều tồn tại trên server |
+| `backend/tests/openapi-coverage.test.ts` | **Ngược lại:** mọi route khai báo trong code đều có trong tài liệu |
+| | 25 API chính có mô tả dữ liệu trả về cụ thể (schema, không phải "object" chung chung) |
+| | Gọi API thật (20 API: khám phá món, giỏ hàng, đơn hàng, thông báo, chủ quầy, quản trị) → các trường trả về **khớp đúng** schema: không thiếu trường bắt buộc, không có trường chưa mô tả |
+| | File `docs/openapi.json` khớp với đặc tả trong code |
+
+Schema dữ liệu chính (mục *Schemas* cuối trang Swagger): `User`, `Category`, `Stall`, `StallDetail`, `MenuItem`, `MenuItemDetail`, `Home`, `PickupLocation`, `Cart`, `Order`, `OrderSummary`, `VendorOrderListItem`, `AdminOrderListItem`, `Notification`, `VendorDashboard`, `SalesReport`, `TopItem`, `Bank`, `PublicReview`, `Pagination`, `Error`.
 
 ## Quy ước chung
 
