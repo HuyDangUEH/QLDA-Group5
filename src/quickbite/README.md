@@ -181,14 +181,20 @@ cd backend
 npm run db:backup
 ```
 
-File được lưu vào thư mục `database/`, vd `quickbite_backup_2026-10-16_1548.sql`. Khôi phục (sẽ **ghi đè** dữ liệu hiện tại, phải thêm `--yes`):
+Tạo file nén `database/quickbite_backup_<ngày>_<giờ>.sql.gz` kèm file kiểm tra `.json` (mã SHA-256, số dòng từng bảng, migration). Chạy được cả với MySQL máy local lẫn Aiven / cloud (tự bật SSL), không khoá bảng khi hệ thống đang chạy, chỉ giữ 14 bản định kỳ mới nhất (`--keep=<n>`, `BACKUP_KEEP`).
+
+Khôi phục (sẽ **ghi đè** dữ liệu hiện tại, phải thêm `--yes`):
 
 ```bash
-npm run db:restore -- "../database/quickbite_backup_2026-10-16_1548.sql" --yes
+npm run db:restore -- "../database/quickbite_backup_2026-11-20_020000.sql.gz" --yes
 ```
 
-- Muốn thử trước mà không động tới dữ liệu đang dùng: thêm `--database=quickbite_thu` để khôi phục vào database khác.
-- Script tự tìm `mysqldump` / `mysql` trong PATH hoặc `C:\Program Files\MySQL\MySQL Server *\bin` (có thể đặt `MYSQL_BIN_DIR`).
+- Trước khi ghi đè: kiểm tra mã SHA-256 (file hỏng → dừng) và **tự sao lưu database đích** (nhãn `truoc-khoi-phuc`).
+- Sau khi khôi phục: so số dòng từng bảng và migration với lúc sao lưu.
+- Ghi đè database chính khi `NODE_ENV=production` hoặc database trên cloud → phải thêm `--confirm=<tên database>`.
+- Muốn thử trước mà không động tới dữ liệu đang dùng: thêm `--database=quickbite_restore_test` để khôi phục vào database khác.
+- Script tự tìm `mysqldump` / `mysql` trong PATH hoặc `C:Program FilesMySQLMySQL Server *in` (có thể đặt `MYSQL_BIN_DIR`).
+- Lịch sao lưu tự động, quy trình khôi phục sự cố: xem [docs/deployment.md](docs/deployment.md#7-sao-lưu--khôi-phục).
 - ⚠️ File sao lưu chứa email, số điện thoại, hash mật khẩu → **đã chặn trong `.gitignore`**, không đưa lên GitHub. Hãy cất ở nơi an toàn, kèm bản sao thư mục `backend/uploads/` (ảnh tải lên).
 
 ### 🐳 (Tuỳ chọn) MySQL bằng Docker
@@ -221,7 +227,11 @@ Nếu máy đã có MySQL ở cổng 3306, đổi `ports` trong `docker-compose.
 | `TRUST_PROXY` | `0` | Số reverse proxy phía trước (`1` khi có nginx) |
 | `IMAGE_HOSTS` | `images.unsplash.com` | Tên miền ảnh ngoài (https) được phép, ngoài ảnh có sẵn `/images/...` và ảnh tải lên `/uploads/...` |
 | `API_DOCS` | tự động | `true` / `false` để ép bật / tắt Swagger (mặc định tắt ở production) |
+| `BACKUP_DIR` · `BACKUP_KEEP` | `../database` · `14` | Thư mục lưu bản sao lưu · số bản định kỳ giữ lại |
+| `DB_SSL` | tự động | `true` / `false` để ép bật / tắt SSL khi sao lưu / khôi phục (mặc định bật với database trên cloud) |
 | `SEPAY_WEBHOOK_API_KEY` | — (tắt) | API key nhận webhook SePay để tự xác nhận chuyển khoản. Bỏ trống = chủ quầy tự bấm "Đã nhận tiền". Xem [docs/payments.md](docs/payments.md) |
+
+Mẫu cấu hình production: [backend/.env.production.example](backend/.env.production.example).
 
 `backend/.env.test` dùng cho bộ test (xem [.env.test.example](backend/.env.test.example)); tên database **bắt buộc kết thúc bằng `_test`**.
 
@@ -248,8 +258,9 @@ Nếu máy đã có MySQL ở cổng 3306, đổi `ports` trong `docker-compose.
 | `npm run db:deploy` | Áp dụng migration (production / CI) |
 | `npm run db:seed` · `npm run db:reset` | Nạp lại dữ liệu mẫu · xoá sạch DB rồi migrate + seed |
 | `npm run db:studio` | Prisma Studio |
-| `npm run db:backup` | Sao lưu database ra `database/quickbite_backup_<ngày>_<giờ>.sql` |
-| `npm run db:restore -- "<file .sql>" --yes` | Khôi phục từ file sao lưu (**ghi đè** dữ liệu hiện tại); thêm `--database=<tên>` để khôi phục vào database khác |
+| `npm run db:backup` | Sao lưu database ra `database/quickbite_backup_<ngày>_<giờ>.sql.gz` (+ file kiểm tra `.json`) |
+| `npm run db:restore -- "<file>" --yes` | Khôi phục từ file sao lưu (**ghi đè** dữ liệu hiện tại, tự sao lưu trước); thêm `--database=<tên>` để khôi phục vào database khác |
+| `npm run prod:check` | Kiểm tra cấu hình production (biến môi trường + database); thêm `-- --env-file=<file>` để kiểm tra file khác |
 | `npm test` | Chạy toàn bộ test (database `*_test`) |
 
 ### Frontend (`cd frontend`)
