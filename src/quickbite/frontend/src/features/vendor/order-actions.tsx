@@ -60,12 +60,17 @@ export function OrderActions({
   // Đơn đã chuyển khoản: bước cuối chỉ là giao món, không thu tiền nữa
   const labelOf = (status: OrderStatus) => (status === 'COMPLETED' && payment?.method === 'VIETQR' ? 'Đã giao món' : ACTION_LABELS[status]);
   const transferContent = orderNumber.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  // Nút bước chính (Nhận đơn, Bắt đầu làm...) lớn hơn một cỡ: cao ≥ 44px cho dễ bấm khi đứng quầy (UAT-Q01);
+  // trên điện thoại kéo dài ra để vùng bấm rộng
+  const primarySize = size === 'sm' ? 'md' : 'lg';
+  const primaryClass = 'min-w-36 grow sm:grow-0 text-base font-bold';
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex w-full flex-wrap gap-2 sm:w-auto">
       {awaitingPayment && (
         <Button
-          size={size}
+          size={primarySize}
+          className={primaryClass}
           loading={confirmPayment.isPending}
           disabled={busy}
           onClick={(e) => {
@@ -79,7 +84,8 @@ export function OrderActions({
       {forward.map((status) => (
         <Button
           key={status}
-          size={size}
+          size={primarySize}
+          className={primaryClass}
           loading={busy && update.variables?.status === status}
           disabled={busy}
           onClick={(e) => {

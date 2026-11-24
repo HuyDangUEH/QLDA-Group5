@@ -9,10 +9,12 @@ interface FoodCardProps {
   onSelect: (item: MenuItem) => void;
   /** Ẩn tên quầy (dùng trong trang chi tiết quầy) */
   hideStall?: boolean;
+  /** Thẻ ở đầu danh sách (thấy ngay khi mở trang): tải ảnh ngay, ưu tiên cao */
+  priority?: boolean;
 }
 
 /** Thẻ món ăn. Cả thẻ là một nút để mở chi tiết món. */
-export function FoodCard({ item, onSelect, hideStall }: FoodCardProps) {
+export function FoodCard({ item, onSelect, hideStall, priority }: FoodCardProps) {
   const unavailable = !item.isAvailable;
   return (
     <button
@@ -25,6 +27,7 @@ export function FoodCard({ item, onSelect, hideStall }: FoodCardProps) {
         <ImageWithFallback
           src={item.imageUrl ?? undefined}
           alt=""
+          priority={priority}
           className={cn('size-full object-cover transition duration-300 group-hover:scale-105', unavailable && 'grayscale')}
         />
         {unavailable ? (

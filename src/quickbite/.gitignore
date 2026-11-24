@@ -10,6 +10,7 @@ coverage/
 .env.local
 !.env.example
 !.env.test.example
+!.env.production.example
 
 # Ảnh người dùng tải lên
 backend/uploads/
@@ -17,3 +18,9 @@ backend/uploads-test/
 
 # File sao lưu database (chứa dữ liệu cá nhân) — KHÔNG đưa lên GitHub
 database/*_backup_*.sql
+database/*_backup_*.sql.gz
+database/*_backup_*.json
+
+# Cấu hình production thật (chỉ commit file .example)
+.env.production
+backend/.env.production
