@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Lock, MapPin, Users } from 'lucide-react';
+import { CircleCheck, Lock, MapPin, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -16,7 +17,7 @@ import { useCurrentStallId } from '@/features/vendor/vendor-stall-context';
 import { applyServerErrors } from '@/lib/form-errors';
 import { vendorKeys, vendorService } from '@/services/vendor.service';
 import type { VendorStallDetail } from '@/types/vendor';
-import { cn } from '@/lib/utils';
+import { cn, formatTime } from '@/lib/utils';
 
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Giờ không hợp lệ');
 const schema = z
@@ -36,14 +37,17 @@ type Values = z.infer<typeof schema>;
 
 export function VendorStallSettingsPage() {
   const stallId = useCurrentStallId();
+  // Giữ ở đây (không đặt trong form): sau khi lưu, dữ liệu tải lại có updatedAt mới nên form được dựng lại
+  // từ đầu — nếu để trong form thì thông báo "Đã lưu" sẽ mất ngay (UAT-Q02)
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
   const { data, isPending, error, refetch } = useQuery({ queryKey: vendorKeys.stall(stallId), queryFn: () => vendorService.stall(stallId) });
 
   if (isPending) return <Spinner />;
   if (error) return <ErrorState message={error.message} onRetry={() => refetch()} />;
-  return <SettingsForm key={data.stall.id + data.stall.updatedAt} detail={data} />;
+  return <SettingsForm key={data.stall.id + data.stall.updatedAt} detail={data} savedAt={savedAt} onSaved={() => setSavedAt(new Date())} />;
 }
 
-function SettingsForm({ detail }: { detail: VendorStallDetail }) {
+function SettingsForm({ detail, savedAt, onSaved }: { detail: VendorStallDetail; savedAt: Date | null; onSaved: () => void }) {
   const { stall, myRole } = detail;
   const canEdit = myRole !== 'STAFF';
   const queryClient = useQueryClient();
@@ -53,6 +57,7 @@ function SettingsForm({ detail }: { detail: VendorStallDetail }) {
     control,
     handleSubmit,
     setError,
+    reset,
     formState: { errors, isDirty },
   } = useForm<Values>({
     resolver: zodResolver(schema),
@@ -68,11 +73,14 @@ function SettingsForm({ detail }: { detail: VendorStallDetail }) {
 
   const save = useMutation({
     mutationFn: (v: Values) => vendorService.updateStall(stall.id, { ...v, description: v.description.trim() || null, phone: v.phone.trim() || null }),
-    onSuccess: () => {
+    onSuccess: (_data, values) => {
       queryClient.invalidateQueries({ queryKey: vendorKeys.stall(stall.id) });
       queryClient.invalidateQueries({ queryKey: vendorKeys.stalls });
       queryClient.invalidateQueries({ queryKey: ['catalog'] });
-      toast.success('Đã lưu thông tin quầy');
+      // Giá trị vừa lưu thành "bản gốc" mới → nút Lưu tắt, biết rõ là đã lưu (UAT-Q02)
+      reset(values);
+      onSaved();
+      toast.success('Đã lưu thông tin quầy', { description: 'Sinh viên sẽ thấy thông tin mới ngay trên trang quầy.' });
     },
     onError: (e) => applyServerErrors(e, setError, ['description', 'phone', 'openTime', 'closeTime', 'imageUrl']),
   });
@@ -118,9 +126,19 @@ function SettingsForm({ detail }: { detail: VendorStallDetail }) {
           </fieldset>
 
           {canEdit && (
-            <div className="flex justify-end">
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {/* Trạng thái lưu luôn hiện cạnh nút (không tự biến mất như toast) */}
+              {isDirty ? (
+                <p className="text-sm font-medium text-amber-700">Có thay đổi chưa lưu</p>
+              ) : (
+                savedAt && (
+                  <p role="status" className="flex items-center gap-1.5 rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">
+                    <CircleCheck className="size-4" aria-hidden /> Đã lưu lúc {formatTime(savedAt)}
+                  </p>
+                )
+              )}
               <Button type="submit" loading={save.isPending} disabled={!isDirty}>
-                Lưu thay đổi
+                {isDirty || !savedAt ? 'Lưu thay đổi' : 'Đã lưu'}
               </Button>
             </div>
           )}
