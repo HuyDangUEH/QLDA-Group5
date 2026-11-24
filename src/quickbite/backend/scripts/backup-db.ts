@@ -1,68 +1,60 @@
 /**
- * Sao lưu database MySQL ra file .sql:   npm run db:backup
+ * Sao lưu database MySQL:   npm run db:backup [-- --dir=<thư mục>] [--keep=14] [--label=truoc-trien-khai]
  *
- * - Đọc thông tin kết nối từ DATABASE_URL trong backend/.env
- * - Lưu vào thư mục ../database/ với tên quickbite_backup_YYYY-MM-DD_HHmm.sql
- * - Mật khẩu truyền qua biến môi trường MYSQL_PWD (không hiện trên dòng lệnh)
- * - File sao lưu KHÔNG kèm lệnh CREATE DATABASE / USE, nên có thể khôi phục vào database tên bất kỳ
- *   (xem scripts/restore-db.ts)
+ * - Đọc thông tin kết nối từ DATABASE_URL (máy local hoặc Aiven / cloud; tự bật SSL khi cần).
+ * - Ghi file nén <db>_backup_<thời gian>[_<nhãn>].sql.gz vào ../database/ (hoặc BACKUP_DIR / --dir).
+ * - Ghi kèm file kiểm tra .json: mã SHA-256, số dòng từng bảng, migration mới nhất → dùng để kiểm tra khi khôi phục.
+ * - Ảnh chụp nhất quán (--single-transaction), không khoá bảng → chạy được khi hệ thống đang hoạt động.
+ * - Chỉ giữ `--keep` bản định kỳ mới nhất (mặc định BACKUP_KEEP hoặc 14). Bản có nhãn không bị xoá tự động.
+ * - File KHÔNG kèm CREATE DATABASE / USE nên khôi phục được vào database tên bất kỳ (xem scripts/restore-db.ts).
+ * - Mật khẩu truyền qua biến môi trường MYSQL_PWD (không hiện trên dòng lệnh / danh sách tiến trình).
  *
- * Cần có mysqldump: tự tìm trong PATH hoặc C:\Program Files\MySQL\MySQL Server *\bin.
- * Có thể chỉ định đường dẫn bằng biến MYSQL_BIN_DIR.
+ * ⚠️ File sao lưu chứa dữ liệu cá nhân (email, SĐT, hash mật khẩu): KHÔNG đưa lên GitHub, lưu ở nơi an toàn.
  */
 import 'dotenv/config';
 import { spawn } from 'node:child_process';
-import { createWriteStream, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import { createWriteStream, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
+import { createGzip } from 'node:zlib';
+import {
+  type BackupManifest,
+  type DbConfig,
+  DEFAULT_BACKUP_DIR,
+  backupFileName,
+  cleanStderr,
+  connectionArgs,
+  countRows,
+  findMysqlTool,
+  formatBytes,
+  lastMigration,
+  manifestPathOf,
+  parseArgs,
+  parseDatabaseUrl,
+  selectExpiredBackups,
+  sha256File,
+} from './db-tools.js';
 
-export function parseDatabaseUrl(raw = process.env.DATABASE_URL) {
-  if (!raw) throw new Error('Thiếu DATABASE_URL trong backend/.env');
-  const url = new URL(raw);
-  return {
-    host: url.hostname,
-    port: url.port || '3306',
-    user: decodeURIComponent(url.username),
-    password: decodeURIComponent(url.password),
-    database: url.pathname.replace(/^\//, ''),
-  };
+export interface BackupOptions {
+  dir?: string;
+  label?: string;
+  /** Số bản định kỳ giữ lại; 0 = không xoá bản nào */
+  keep?: number;
+  db?: DbConfig;
 }
 
-/** Tìm mysqldump.exe / mysql.exe */
-export function findMysqlTool(tool: 'mysqldump' | 'mysql'): string {
-  const exe = process.platform === 'win32' ? `${tool}.exe` : tool;
-  const candidates: string[] = [];
-  if (process.env.MYSQL_BIN_DIR) candidates.push(path.join(process.env.MYSQL_BIN_DIR, exe));
-  for (const dir of (process.env.PATH ?? '').split(path.delimiter)) candidates.push(path.join(dir, exe));
-  if (process.platform === 'win32') {
-    const root = 'C:\\Program Files\\MySQL';
-    if (existsSync(root)) {
-      for (const d of readdirSync(root).filter((n) => n.startsWith('MySQL Server')).sort().reverse()) {
-        candidates.push(path.join(root, d, 'bin', exe));
-      }
-    }
-  }
-  const found = candidates.find((c) => existsSync(c));
-  if (!found) throw new Error(`Không tìm thấy ${exe}. Thêm thư mục bin của MySQL vào PATH hoặc đặt MYSQL_BIN_DIR.`);
-  return found;
-}
+export async function runBackup(opts: BackupOptions = {}) {
+  const db = opts.db ?? parseDatabaseUrl();
+  const dir = path.resolve(opts.dir ?? process.env.BACKUP_DIR ?? DEFAULT_BACKUP_DIR);
+  mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, backupFileName(db.database, new Date(), opts.label));
+  const started = Date.now();
 
-function timestamp(d = new Date()) {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`;
-}
-
-async function main() {
-  const db = parseDatabaseUrl();
-  const outDir = path.resolve(import.meta.dirname, '../../database');
-  mkdirSync(outDir, { recursive: true });
-  const outFile = path.join(outDir, `${db.database}_backup_${timestamp()}.sql`);
-
+  console.log(`⏳ Đang sao lưu database "${db.database}" tại ${db.host}${db.ssl ? ' (SSL)' : ''}...`);
   const args = [
-    `--host=${db.host}`,
-    `--port=${db.port}`,
-    `--user=${db.user}`,
-    '--default-character-set=utf8mb4',
+    ...connectionArgs(db),
     '--single-transaction', // ảnh chụp nhất quán, không khoá bảng khi đang chạy
+    '--quick', // đọc từng dòng, không dồn cả bảng vào RAM
     '--routines',
     '--triggers',
     '--no-tablespaces',
@@ -70,28 +62,70 @@ async function main() {
     '--skip-comments',
     db.database,
   ];
-
-  console.log(`⏳ Đang sao lưu database "${db.database}"...`);
-  const out = createWriteStream(outFile);
   const child = spawn(findMysqlTool('mysqldump'), args, { env: { ...process.env, MYSQL_PWD: db.password } });
-  child.stdout.pipe(out);
   let stderr = '';
   child.stderr.on('data', (c) => (stderr += c));
-
-  const code: number = await new Promise((resolve) => child.on('close', resolve));
-  await new Promise((r) => out.end(r));
-  // Bỏ cảnh báo vô hại về việc dùng mật khẩu qua biến môi trường
-  const errors = stderr.split(/\r?\n/).filter((l) => l.trim() && !/Using a password/i.test(l));
+  const exited = new Promise<number>((resolve, reject) => {
+    child.on('error', reject);
+    child.on('close', (code) => resolve(code ?? 1));
+  });
+  await pipeline(child.stdout, createGzip({ level: 6 }), createWriteStream(file));
+  const code = await exited;
   if (code !== 0) {
-    console.error('❌ Sao lưu thất bại:\n' + errors.join('\n'));
-    process.exit(1);
+    rmSync(file, { force: true });
+    throw new Error(`mysqldump lỗi (mã ${code}):\n${cleanStderr(stderr)}`);
   }
 
-  const kb = (statSync(outFile).size / 1024).toFixed(1);
-  console.log(`✅ Đã sao lưu: ${outFile} (${kb} KB)`);
-  console.log('   Khôi phục: npm run db:restore -- "<đường dẫn file>" --yes');
+  // Số dòng đếm ngay sau khi dump: nếu hệ thống đang có người dùng, có thể lệch vài dòng ở bảng thay đổi liên tục
+  const [tables, migration, sha256] = await Promise.all([countRows(db), lastMigration(db), sha256File(file)]);
+  const manifest: BackupManifest = {
+    app: 'quickbite',
+    database: db.database,
+    host: db.host,
+    createdAt: new Date(started).toISOString(),
+    file: path.basename(file),
+    bytes: statSync(file).size,
+    sha256,
+    compressed: true,
+    lastMigration: migration,
+    tables,
+    durationMs: Date.now() - started,
+  };
+  writeFileSync(manifestPathOf(file), JSON.stringify(manifest, null, 2));
+
+  // Xoá bản định kỳ cũ
+  const keep = opts.keep ?? Number(process.env.BACKUP_KEEP ?? 14);
+  const expired = selectExpiredBackups(readdirSync(dir), db.database, keep);
+  for (const f of expired) {
+    rmSync(path.join(dir, f), { force: true });
+    rmSync(manifestPathOf(path.join(dir, f)), { force: true });
+  }
+
+  const totalRows = Object.values(tables).reduce((a, b) => a + b, 0);
+  console.log(`✅ Đã sao lưu: ${file}`);
+  console.log(`   ${formatBytes(manifest.bytes)} (nén gzip) · ${Object.keys(tables).length} bảng · ${totalRows.toLocaleString('vi-VN')} dòng · ${(manifest.durationMs / 1000).toFixed(1)} giây`);
+  console.log(`   Migration: ${migration ?? '(không có)'} · SHA-256: ${sha256.slice(0, 16)}…`);
+  if (expired.length) console.log(`   Đã xoá ${expired.length} bản cũ (giữ ${keep} bản định kỳ mới nhất)`);
+  return { file, manifest, expired };
+}
+
+async function main() {
+  const { flags } = parseArgs(process.argv.slice(2));
+  const keep = flags.has('keep') ? Number(flags.get('keep')) : undefined;
+  if (keep !== undefined && (!Number.isInteger(keep) || keep < 0)) throw new Error('--keep phải là số nguyên ≥ 0');
+  const { file } = await runBackup({
+    dir: typeof flags.get('dir') === 'string' ? (flags.get('dir') as string) : undefined,
+    label: typeof flags.get('label') === 'string' ? (flags.get('label') as string) : undefined,
+    keep,
+  });
+  console.log(`   Khôi phục: npm run db:restore -- "${file}" --yes`);
   console.log('   ⚠️ File chứa dữ liệu cá nhân (email, SĐT, hash mật khẩu) — không đưa lên GitHub.');
 }
 
-// Chỉ chạy khi gọi trực tiếp (cho phép restore-db.ts dùng lại các hàm ở trên)
-if (import.meta.filename === path.resolve(process.argv[1] ?? '')) void main();
+// Chỉ chạy khi gọi trực tiếp (restore-db.ts dùng lại runBackup)
+if (import.meta.filename === path.resolve(process.argv[1] ?? '')) {
+  main().catch((err) => {
+    console.error('❌ Sao lưu thất bại:', err instanceof Error ? err.message : err);
+    process.exit(1);
+  });
+}

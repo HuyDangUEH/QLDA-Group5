@@ -13,6 +13,22 @@ Mọi tài liệu viết bằng **Markdown (.md)** và được quản lý phiê
 | `03-design/` | Kiến trúc hệ thống, sơ đồ, thiết kế UI/UX |
 | `04-testing/` | Test case, báo cáo lỗi |
 
+## Tài liệu kỹ thuật (mã nguồn)
+
+Tài liệu kỹ thuật của ứng dụng nằm cùng mã nguồn trong [`src/quickbite/docs/`](../src/quickbite/docs/):
+
+| Tài liệu | Nội dung |
+|---|---|
+| [README mã nguồn](../src/quickbite/README.md) | Cài đặt, biến môi trường, các lệnh, kiểm thử, cấu trúc mã nguồn |
+| [api.md](../src/quickbite/docs/api.md) · [openapi.json](../src/quickbite/docs/openapi.json) | Tài liệu API, Swagger / OpenAPI 3.1 |
+| [database.md](../src/quickbite/docs/database.md) | Sơ đồ ER, thiết kế cơ sở dữ liệu |
+| [business-rules.md](../src/quickbite/docs/business-rules.md) | Quy tắc nghiệp vụ: trạng thái đơn, thanh toán, huỷ / hoàn tiền |
+| [payments.md](../src/quickbite/docs/payments.md) | Thanh toán VietQR, webhook SePay |
+| [security.md](../src/quickbite/docs/security.md) | Bảo mật |
+| [deployment.md](../src/quickbite/docs/deployment.md) | Triển khai production, sao lưu & khôi phục |
+| [release-v1.0.md](../src/quickbite/docs/release-v1.0.md) | Bản phát hành v1.0.0 |
+| [cong-nghe.md](../src/quickbite/docs/cong-nghe.md) | Công nghệ & phiên bản |
+
 ## Quy ước
 
 - Tên file và thư mục: chữ thường, không dấu, nối bằng gạch ngang (`sprint-planning.md`).
@@ -24,7 +40,7 @@ Mọi tài liệu viết bằng **Markdown (.md)** và được quản lý phiê
 
 | Thành viên | File phụ trách | Trạng thái |
 |---|---|---|
-| Đặng Xuân Huy | `README.md`, cấu trúc thư mục, `sprint-planning.md` | ⬜ |
+| Đặng Xuân Huy | `README.md`, cấu trúc thư mục, `sprint-planning.md` | ✅ |
 | Thành viên 2 | `project-charter.md`, `definition-of-done.md` | ⬜ |
 | Thành viên 3 | `product-backlog.md` | ⬜ |
 | Thành viên 4 | `daily-scrum.md`, `sprint-review.md` | ⬜ |

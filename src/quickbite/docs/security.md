@@ -77,4 +77,4 @@ Một lượt rà soát độc lập toàn bộ mã backend & frontend (đọc m
 - **Bộ đếm giới hạn tần suất lưu trong bộ nhớ** → mất khi khởi động lại, không chia sẻ khi chạy nhiều tiến trình. Khi mở rộng nên dùng Redis store cho `express-rate-limit`.
 - **Ảnh không còn dùng** không tự xoá; cần job dọn định kỳ nếu dung lượng là vấn đề.
 - Mỗi người dùng có thể báo cáo một đánh giá nhiều lần (không có bảng lưu người báo cáo); việc này chỉ làm thêm việc cho admin, không ẩn được đánh giá.
-- Thanh toán online **chưa tích hợp**; khi tích hợp phải xác thực webhook từ nhà cung cấp trước khi đánh dấu `PAID`.
+- Thanh toán: tiền mặt và chuyển khoản VietQR. Webhook SePay **xác thực bằng API key** (`SEPAY_WEBHOOK_API_KEY`) và kiểm tra số tiền, tài khoản nhận, nội dung trước khi đánh dấu `PAID`. Cổng thẻ / ví điện tử chưa tích hợp; khi tích hợp cũng phải xác thực webhook như trên.

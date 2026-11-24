@@ -76,4 +76,20 @@ describe('OrderActions', () => {
     );
     expect(screen.getByRole('button', { name: 'Đã giao món' })).toBeInTheDocument();
   });
+
+  // UAT-Q01: vùng bấm "Nhận đơn" đủ lớn khi đứng quầy
+  it('nút bước chính (Nhận đơn) lớn hơn một cỡ: cao ≥ 44px; nút Từ chối giữ cỡ nhỏ', () => {
+    withQueryClient(
+      <OrderActions stallId={1} orderId={42} orderNumber="QB-1" nextStatuses={['ACCEPTED', 'REJECTED']} />,
+    );
+    expect(screen.getByRole('button', { name: 'Nhận đơn' })).toHaveClass('h-11', 'min-w-36', 'grow');
+    expect(screen.getByRole('button', { name: 'Từ chối' })).toHaveClass('h-9');
+  });
+
+  it('trong hộp thoại chi tiết (cỡ md) nút chính cao 48px', () => {
+    withQueryClient(
+      <OrderActions stallId={1} orderId={42} orderNumber="QB-1" nextStatuses={['PREPARING']} size="md" />,
+    );
+    expect(screen.getByRole('button', { name: 'Bắt đầu làm' })).toHaveClass('h-12');
+  });
 });

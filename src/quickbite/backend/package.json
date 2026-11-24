@@ -19,9 +19,12 @@
     "db:studio": "prisma studio",
     "db:backup": "tsx scripts/backup-db.ts",
     "db:restore": "tsx scripts/restore-db.ts",
+    "prod:check": "tsx scripts/check-production.ts",
     "prisma:generate": "prisma generate",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "smoke": "tsx scripts/smoke-test.ts",
+    "docs:openapi": "tsx scripts/export-openapi.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
